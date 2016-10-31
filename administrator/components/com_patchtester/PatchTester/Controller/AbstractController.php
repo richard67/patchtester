@@ -8,6 +8,7 @@
 
 namespace PatchTester\Controller;
 
+use Joomla\Application\AbstractApplication;
 use Joomla\Registry\Registry;
 
 /**
@@ -38,12 +39,12 @@ abstract class AbstractController extends \JControllerBase
 	/**
 	 * Instantiate the controller
 	 *
-	 * @param   \JInput            $input  The input object.
-	 * @param   \JApplicationBase  $app    The application object.
+	 * @param   \JInput              $input  The input object.
+	 * @param   AbstractApplication  $app    The application object.
 	 *
 	 * @since   2.0
 	 */
-	public function __construct(\JInput $input = null, \JApplicationBase $app = null)
+	public function __construct(\JInput $input = null, AbstractApplication $app = null)
 	{
 		parent::__construct($input, $app);
 
