@@ -108,7 +108,7 @@ class PullsModel extends \JModelDatabase
 			}
 			elseif (is_numeric($search))
 			{
-				$query->where('a.pull_id LIKE ' . $db->quote('%' . (int) $search . '%'));
+				$query->where('a.pull_id = ' . (int) $search);
 			}
 			else
 			{
