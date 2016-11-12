@@ -326,6 +326,10 @@ class PullModel extends \JModelDatabase
 				->where($db->quoteName('pull_id') . ' = ' . (int) $id)
 		)->execute();
 
+		// Change the media version
+		$version = new \JVersion;
+		$version->refreshMediaVersion();
+
 		return true;
 	}
 
@@ -439,6 +443,10 @@ class PullModel extends \JModelDatabase
 					break;
 			}
 		}
+
+		// Change the media version
+		$version = new \JVersion;
+		$version->refreshMediaVersion();
 
 		return $this->removeTest($testRecord);
 	}
