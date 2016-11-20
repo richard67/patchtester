@@ -11,8 +11,8 @@
 \JHtml::_('behavior.core');
 \JHtml::_('bootstrap.tooltip');
 \JHtml::_('formbehavior.chosen', 'select');
-\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array(), true);
-\JHtml::_('script', 'com_patchtester/patchtester.js', false, true);
+\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => 'auto', 'relative' => true));
+\JHtml::_('script', 'com_patchtester/patchtester.js', array('version' => 'auto', 'relative' => true));
 
 if (count($this->envErrors)) :
 	echo $this->loadTemplate('errors');

@@ -10,7 +10,7 @@
 
 \JHtml::_('jquery.framework');
 \JHtml::_('behavior.core');
-\JHtml::_('script', 'com_patchtester/fetcher.js', false, true);
+\JHtml::_('script', 'com_patchtester/fetcher.js', array('version' => 'auto', 'relative' => true));
 
 ?>
 

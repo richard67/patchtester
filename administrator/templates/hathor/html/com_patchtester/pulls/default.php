@@ -6,12 +6,12 @@
  * @license    GNU General Public License version 2 or later
  */
 
-/** @var \PatchTester\View\DefaultHtmlView $this */
+/** @var  \PatchTester\View\Pulls\PullsHtmlView  $this */
 
 \JHtml::_('behavior.core');
 \JHtml::_('bootstrap.tooltip');
-\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array(), true);
-\JHtml::_('script', 'com_patchtester/patchtester.js', false, true);
+\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => 'auto', 'relative' => true));
+\JHtml::_('script', 'com_patchtester/patchtester.js', array('version' => 'auto', 'relative' => true));
 
 if (count($this->envErrors)) :
 	echo $this->loadTemplate('errors');
