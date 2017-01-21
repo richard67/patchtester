@@ -44,6 +44,7 @@
 			<folder>backups</folder>
 			<folder>install</folder>
 			<folder>language</folder>
+			<folder>vendor</folder>
 			<filename>access.xml</filename>
 			<filename>config.xml</filename>
 			<filename>patchtester.php</filename>

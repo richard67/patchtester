@@ -17,8 +17,8 @@ if (!JFactory::getUser()->authorise('core.manage', 'com_patchtester'))
 // Application reference
 $app = JFactory::getApplication();
 
-// Register the component namespace to the autoloader
-JLoader::registerNamespace('PatchTester', __DIR__);
+// Import our Composer autoloader to load the component classes
+require_once __DIR__ . '/vendor/autoload.php';
 
 // Build the controller class name based on task
 $task = $app->input->getCmd('task', 'display');
