@@ -21,5 +21,5 @@ before_script:
   - composer install
 
 script:
-  - if [[ $RUN_PHPCS == "yes" ]]; then administrator/components/com_patchtester/vendor/bin/phpcs --report=full --extensions=php -p --standard=build/phpcs/Joomla --ignore=./*tmpl/* administrator/components/com_patchtester; fi
+  - if [[ $RUN_PHPCS == "yes" ]]; then administrator/components/com_patchtester/vendor/bin/phpcs --report=full --extensions=php -p --standard=build/phpcs/Joomla --ignore=./*tmpl/*,administrator/components/com_patchtester/vendor/* administrator/components/com_patchtester; fi
   - if [[ $UPDATE_CROWDIN == "yes" && $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_BRANCH == "master" ]]; then administrator/components/com_patchtester/vendor/bin/crowdin --upload; fi
