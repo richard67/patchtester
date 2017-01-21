@@ -18,4 +18,4 @@
 /.idea
 
 # Composer Install #
-/vendor
+/administrator/components/com_patchtester/vendor

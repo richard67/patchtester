@@ -5,6 +5,9 @@
     "keywords": ["joomla", "cms"],
     "homepage": "https://github.com/joomla-extensions/patchtester",
     "license": "GPL-2.0+",
+    "config": {
+        "vendor-dir": "administrator/components/com_patchtester/vendor"
+    },
     "require": {
         "php": ">=5.3.10"
     },
