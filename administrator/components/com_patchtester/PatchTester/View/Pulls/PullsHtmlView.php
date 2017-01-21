@@ -88,6 +88,12 @@ class PullsHtmlView extends DefaultHtmlView
 			$this->trackerAlias = TrackerHelper::getTrackerAlias($this->state->get('github_user'), $this->state->get('github_repo'));
 		}
 
+		// Change the layout if there are environment errors
+		if (count($this->envErrors))
+		{
+			$this->setLayout('errors');
+		}
+
 		$this->addToolbar();
 
 		// Make text strings available in the JavaScript API

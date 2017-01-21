@@ -6,7 +6,7 @@
  * @license    GNU General Public License version 2 or later
  */
 
-/** @var \PatchTester\View\DefaultHtmlView $this */
+/** @var  \PatchTester\View\Pulls\PullsHtmlView  $this */
 ?>
 <h3><?php echo \JText::_('COM_PATCHTESTER_REQUIREMENTS_HEADING'); ?></h3>
 <p><?php echo \JText::_('COM_PATCHTESTER_REQUIREMENTS_NOT_MET'); ?></p>

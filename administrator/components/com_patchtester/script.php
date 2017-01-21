@@ -31,6 +31,10 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 		$this->minimumJoomla = '3.7';
 		$this->minimumPhp    = JOOMLA_MINIMUM_PHP;
 
+		$this->deleteFiles = array(
+			'/administrator/components/com_patchtester/PatchTester/View/Pulls/tmpl/default_errors.php',
+		);
+
 		$this->deleteFolders = array(
 			'/administrator/components/com_patchtester/PatchTester/Table',
 			'/components/com_patchtester',

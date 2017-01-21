@@ -14,9 +14,6 @@
 \JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => 'auto', 'relative' => true));
 \JHtml::_('script', 'com_patchtester/patchtester.js', array('version' => 'auto', 'relative' => true));
 
-if (count($this->envErrors)) :
-	echo $this->loadTemplate('errors');
-else :
 $listOrder     = $this->escape($this->state->get('list.ordering'));
 $listDirn      = $this->escape($this->state->get('list.direction'));
 $filterApplied = $this->escape($this->state->get('filter.applied'));
@@ -126,4 +123,3 @@ $colSpan       = $this->trackerAlias !== false ? 7 : 6;
 		<?php echo \JHtml::_('form.token'); ?>
 	</div>
 </form>
-<?php endif;
