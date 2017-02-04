@@ -19,7 +19,7 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 	 * @var    array
 	 * @since  2.0
 	 */
-	protected $templateOverrides = array('hathor');
+	protected $templateOverrides = array('atum', 'hathor');
 
 	/**
 	 * Extension script constructor.
