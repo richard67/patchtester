@@ -46,7 +46,7 @@ if (typeof Joomla === 'undefined') {
     };
 
     Joomla.submitbutton = function (task) {
-        if (task != 'reset' || confirm(Joomla.JText._('COM_PATCHTESTER_CONFIRM_RESET'))) {
+        if (task != 'reset' || confirm(Joomla.JText._('COM_PATCHTESTER_CONFIRM_RESET', 'Resetting will attempt to revert all applied patches and removes all backed up files. This may result in a corrupted environment. Are you sure you want to continue?'))) {
             Joomla.submitform(task);
         }
     };
