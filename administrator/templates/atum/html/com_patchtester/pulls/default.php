@@ -10,7 +10,6 @@
 
 \JHtml::_('behavior.core');
 \JHtml::_('bootstrap.tooltip');
-\JHtml::_('formbehavior.chosen', 'select');
 \JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => 'auto', 'relative' => true));
 \JHtml::_('script', 'com_patchtester/patchtester.js', array('version' => 'auto', 'relative' => true));
 
@@ -30,13 +29,13 @@ $colSpan       = $this->trackerAlias !== false ? 7 : 6;
                         <div class="btn-group mr-2">
                             <div class="input-group">
                                 <input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" placeholder="<?php echo \JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'); ?>" />
-                                <?php JHtml::_('bootstrap.tooltip', '#filter_search', array('title' => \JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'))); ?>
+                                <?php \JHtml::_('bootstrap.tooltip', '#filter_search', array('title' => \JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'))); ?>
                                 <span class="input-group-btn">
-                                    <button type="submit" class="btn btn-secondary hasTooltip" title="<?php echo JHtml::_('tooltipText', 'JSEARCH_FILTER_SUBMIT'); ?>">
+                                    <button type="submit" class="btn btn-secondary hasTooltip" title="<?php echo \JHtml::_('tooltipText', 'JSEARCH_FILTER_SUBMIT'); ?>">
                                         <span class="icon-search"></span>
                                     </button>
-                                    <button type="button" class="btn btn-secondary hasTooltip js-stools-btn-clear" title="<?php echo JHtml::_('tooltipText', 'JSEARCH_FILTER_CLEAR'); ?>">
-                                        <?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?>
+                                    <button type="button" class="btn btn-secondary hasTooltip js-stools-btn-clear" title="<?php echo \JHtml::_('tooltipText', 'JSEARCH_FILTER_CLEAR'); ?>">
+                                        <?php echo \JText::_('JSEARCH_FILTER_CLEAR'); ?>
                                     </button>
                                 </span>
                             </div>
@@ -90,7 +89,7 @@ $colSpan       = $this->trackerAlias !== false ? 7 : 6;
 
         <?php if (empty($this->items)) : ?>
             <div class="alert alert-warning alert-no-items">
-                <?php echo JText::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
+                <?php echo \JText::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
             </div>
         <?php else : ?>
 			<table class="table table-striped">
