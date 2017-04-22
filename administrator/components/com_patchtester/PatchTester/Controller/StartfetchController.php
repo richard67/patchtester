@@ -53,7 +53,7 @@ class StartfetchController extends AbstractController
 			$rateResponse = Helper::initializeGithub()->getRateLimit();
 			$rate         = json_decode($rateResponse->body);
 		}
-		catch (UnexpectedResponse $e)
+		catch (\Exception $e)
 		{
 			$response = new \JResponseJson(
 				new \Exception(
