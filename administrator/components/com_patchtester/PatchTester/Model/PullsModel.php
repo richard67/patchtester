@@ -344,7 +344,15 @@ class PullsModel extends \JModelDatabase
 
 			if (isset($pullsResponse->headers['Link']))
 			{
-				preg_match('/(\?page=[0-9]&per_page=' . $batchSize . '+>; rel=\"last\")/', $pullsResponse->headers['Link'], $matches);
+				$linkHeader = $pullsResponse->headers['Link'];
+
+				// The `joomla/http` 2.0 package uses PSR-7 Responses which has a different format for headers, check for this
+				if (is_array($linkHeader))
+				{
+					$linkHeader = $linkHeader[0];
+				}
+
+				preg_match('/(\?page=[0-9]&per_page=' . $batchSize . '+>; rel=\"last\")/', $linkHeader, $matches);
 
 				if ($matches && isset($matches[0]))
 				{
