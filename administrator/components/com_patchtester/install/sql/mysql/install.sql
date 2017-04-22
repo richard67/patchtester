@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `#__patchtester_pulls` (
   `pull_url` varchar(255) NOT NULL,
   `sha` varchar(40) NOT NULL DEFAULT '',
   `is_rtc` tinyint(1) NOT NULL DEFAULT 0,
+  `branch` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
 

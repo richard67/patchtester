@@ -28,6 +28,9 @@ foreach ($this->items as $i => $item) :
 		<?php endif; ?>
 	</td>
 	<td class="text-center">
+		<?php echo $this->escape($item->branch); ?>
+	</td>
+	<td class="text-center">
 		<?php if ($item->is_rtc) : ?>
 			<span class="badge badge-success"><?php echo \JText::_('JYES'); ?></span>
 		<?php else : ?>

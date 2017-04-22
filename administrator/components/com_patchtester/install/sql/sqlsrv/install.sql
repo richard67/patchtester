@@ -6,6 +6,7 @@ CREATE TABLE [#__patchtester_pulls] (
   [pull_url] [nvarchar](255) NOT NULL,
   [sha] [nvarchar](40) NOT NULL DEFAULT '',
   [is_rtc] [smallint] NOT NULL DEFAULT 1,
+  [branch] [nvarchar](255) NOT NULL DEFAULT '',
  CONSTRAINT [PK_#__patchtester_pulls] PRIMARY KEY CLUSTERED
 (
   [id] ASC

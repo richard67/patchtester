@@ -83,6 +83,9 @@ $colSpan       = $this->trackerAlias !== false ? 7 : 6;
 						<?php echo \JText::_('JGLOBAL_TITLE'); ?>
 					</th>
 					<th width="8%" class="nowrap center">
+						<?php echo \JText::_('COM_PATCHTESTER_BRANCH'); ?>
+					</th>
+					<th width="8%" class="nowrap center">
 						<?php echo \JText::_('COM_PATCHTESTER_READY_TO_COMMIT'); ?>
 					</th>
 					<th width="8%" class="nowrap center">

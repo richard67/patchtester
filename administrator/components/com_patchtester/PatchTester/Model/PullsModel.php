@@ -338,16 +338,19 @@ class PullsModel extends \JModelDatabase
 		{
 			if (isset($pull->pull_request))
 			{
-				// Check if this PR is RTC
-				$isRTC = false;
+				// Check if this PR is RTC and has a `PR-` branch label
+				$isRTC  = false;
+				$branch = '';
 
 				foreach ($pull->labels as $label)
 				{
 					if ($label->name === 'RTC')
 					{
 						$isRTC = true;
-
-						break;
+					}
+					elseif (substr($label->name, 0, 3) === 'PR-')
+					{
+						$branch = substr($label->name, 3);
 					}
 				}
 
@@ -358,6 +361,7 @@ class PullsModel extends \JModelDatabase
 					$this->getDb()->quote(\JHtml::_('string.truncate', $pull->body, 100)),
 					$this->getDb()->quote($pull->pull_request->html_url),
 					(int) $isRTC,
+					$this->getDb()->quote($branch),
 				);
 
 				$data[] = implode($pullData, ',');
@@ -373,7 +377,7 @@ class PullsModel extends \JModelDatabase
 		$this->getDb()->setQuery(
 			$this->getDb()->getQuery(true)
 				->insert('#__patchtester_pulls')
-				->columns(array('pull_id', 'title', 'description', 'pull_url', 'is_rtc'))
+				->columns(array('pull_id', 'title', 'description', 'pull_url', 'is_rtc', 'branch'))
 				->values($data)
 		);
 

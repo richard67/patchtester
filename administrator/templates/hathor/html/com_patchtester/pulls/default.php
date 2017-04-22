@@ -73,6 +73,9 @@ echo \JHtml::_(
 					<?php echo \JHtml::_('grid.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
 				</th>
 				<th width="8%" class="nowrap center">
+					<?php echo \JText::_('COM_PATCHTESTER_BRANCH'); ?>
+				</th>
+				<th width="8%" class="nowrap center">
 					<?php echo \JText::_('COM_PATCHTESTER_READY_TO_COMMIT'); ?>
 				</th>
 				<th width="8%" class="nowrap center">

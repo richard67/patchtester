@@ -30,6 +30,9 @@ foreach ($this->items as $i => $item) :
 		<?php endif; ?>
 	</td>
 	<td class="center">
+		<?php echo $this->escape($item->branch); ?>
+	</td>
+	<td class="center">
 		<?php if ($item->is_rtc) : ?>
 			<span class="label label-success"><?php echo \JText::_('JYES'); ?></span>
 		<?php else : ?>
