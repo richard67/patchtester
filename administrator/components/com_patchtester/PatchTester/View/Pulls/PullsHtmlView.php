@@ -21,6 +21,14 @@ use PatchTester\View\DefaultHtmlView;
 class PullsHtmlView extends DefaultHtmlView
 {
 	/**
+	 * Array containing the list of branches
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $branches = array();
+
+	/**
 	 * Array containing environment errors
 	 *
 	 * @var    array
@@ -86,6 +94,7 @@ class PullsHtmlView extends DefaultHtmlView
 			$this->items        = $this->model->getItems();
 			$this->pagination   = $this->model->getPagination();
 			$this->trackerAlias = TrackerHelper::getTrackerAlias($this->state->get('github_user'), $this->state->get('github_repo'));
+			$this->branches     = $this->model->getBranches();
 		}
 
 		// Change the layout if there are environment errors

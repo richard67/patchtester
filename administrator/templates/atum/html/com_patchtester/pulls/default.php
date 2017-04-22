@@ -16,8 +16,9 @@
 $listOrder     = $this->escape($this->state->get('list.ordering'));
 $listDirn      = $this->escape($this->state->get('list.direction', 'desc'));
 $filterApplied = $this->escape($this->state->get('filter.applied'));
+$filterBranch  = $this->escape($this->state->get('filter.branch'));
 $filterRtc     = $this->escape($this->state->get('filter.rtc'));
-$colSpan       = $this->trackerAlias !== false ? 7 : 6;
+$colSpan       = $this->trackerAlias !== false ? 8 : 7;
 ?>
 <form action="<?php echo \JRoute::_('index.php?option=com_patchtester&view=pulls'); ?>" method="post" name="adminForm" id="adminForm" data-order="<?php echo $listOrder; ?>">
     <div id="j-main-container" class="j-main-container">
@@ -82,6 +83,13 @@ $colSpan       = $this->trackerAlias !== false ? 7 : 6;
                         <option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_RTC_PATCHES'); ?></option>
                         <option value="yes"<?php if ($filterRtc == 'yes') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_RTC'); ?></option>
                         <option value="no"<?php if ($filterRtc == 'no') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_NOT_RTC'); ?></option>
+                    </select>
+                </div>
+                <div class="js-stools-field-filter">
+                    <label for="filter_branch" class="element-invisible"><?php echo \JText::_('JSEARCH_TOOLS_DESC'); ?></label>
+                    <select name="filter_branch" class="custom-select" onchange="this.form.submit();">
+						<option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></option>
+						<?php echo \JHtml::_('select.options', $this->branches, 'text', 'text', $filterBranch, false);?>
                     </select>
                 </div>
             </div>

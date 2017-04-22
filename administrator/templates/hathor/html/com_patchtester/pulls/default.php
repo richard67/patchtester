@@ -16,8 +16,9 @@
 $listOrder     = $this->escape($this->state->get('list.ordering'));
 $listDirn      = $this->escape($this->state->get('list.direction'));
 $filterApplied = $this->escape($this->state->get('filter.applied'));
+$filterBranch  = $this->escape($this->state->get('filter.branch'));
 $filterRtc     = $this->escape($this->state->get('filter.rtc'));
-$colSpan       = $this->trackerAlias !== false ? 7 : 6;
+$colSpan       = $this->trackerAlias !== false ? 8 : 7;
 
 \JFactory::getDocument()->addStyleDeclaration(
 	'
@@ -57,6 +58,11 @@ echo \JHtml::_(
 					<option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_RTC_PATCHES'); ?></option>
 					<option value="yes"<?php if ($filterRtc == 'yes') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_RTC'); ?></option>
 					<option value="no"<?php if ($filterRtc == 'no') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_NOT_RTC'); ?></option>
+				</select>
+				<label class="selectlabel" for="filter_branch"><?php echo JText::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></label>
+				<select name="filter_branch" id="filter_branch">
+					<option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></option>
+					<?php echo \JHtml::_('select.options', $this->branches, 'text', 'text', $filterBranch, false);?>
 				</select>
 				<button type="submit" id="filter-go"><?php echo \JText::_('JSUBMIT'); ?></button>
 			</div>

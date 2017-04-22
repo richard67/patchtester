@@ -53,6 +53,28 @@ class PullsModel extends \JModelDatabase
 	}
 
 	/**
+	 * Method to get an array of branches.
+	 *
+	 * @return  array
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getBranches()
+	{
+		// Create a new query object.
+		$db    = $this->getDb();
+		$query = $db->getQuery(true);
+
+		// Select distinct branches excluding empty values
+		$query->select('DISTINCT(branch) AS text')
+			->from('#__patchtester_pulls')
+			->where($db->quoteName('branch') . ' != ' . $db->quote(''))
+			->order('branch ASC');
+
+		return $db->setQuery($query)->loadAssocList();
+	}
+
+	/**
 	 * Method to get an array of data items.
 	 *
 	 * @return  mixed  An array of data items on success, false on failure.
@@ -125,6 +147,14 @@ class PullsModel extends \JModelDatabase
 			$value = $applied == 'no' ? ' IS NULL' : ' = 1';
 
 			$query->where($db->quoteName('applied') . $value);
+		}
+
+		// Filter for branch
+		$branch = $this->getState()->get('filter.branch');
+
+		if (!empty($branch))
+		{
+			$query->where($db->quoteName('branch') . ' = ' . $db->quote($branch));
 		}
 
 		// Filter for RTC patches

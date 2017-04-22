@@ -109,6 +109,7 @@ class DisplayController extends AbstractController
 		// Load the filter state.
 		$state->set('filter.search', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', ''));
 		$state->set('filter.applied', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.applied', 'filter_applied', ''));
+		$state->set('filter.branch', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.branch', 'filter_branch', ''));
 		$state->set('filter.rtc', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.rtc', 'filter_rtc', ''));
 
 		// Pre-fill the limits.
