@@ -352,7 +352,7 @@ class PullsModel extends \JModelDatabase
 					$linkHeader = $linkHeader[0];
 				}
 
-				preg_match('/(\?page=[0-9]&per_page=' . $batchSize . '+>; rel=\"last\")/', $linkHeader, $matches);
+				preg_match('/(\?page=[0-9]{1,3}&per_page=' . $batchSize . '+>; rel=\"last\")/', $linkHeader, $matches);
 
 				if ($matches && isset($matches[0]))
 				{
