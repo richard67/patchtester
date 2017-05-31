@@ -24,7 +24,7 @@ class PullsHtmlView extends DefaultHtmlView
 	 * Array containing the list of branches
 	 *
 	 * @var    array
-	 * @since  __DEPLOY_VERSION__
+	 * @since  3.0.0
 	 */
 	protected $branches = array();
 

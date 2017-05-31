@@ -57,7 +57,7 @@ class PullsModel extends \JModelDatabase
 	 *
 	 * @return  array
 	 *
-	 * @since   __DEPLOY_VERSION__
+	 * @since   3.0.0
 	 */
 	public function getBranches()
 	{
