@@ -30,6 +30,6 @@
 		<tags>
 			<tag>beta</tag>
 		</tags>
-		<targetplatform name="joomla" version="3.[56789]" />
+		<targetplatform name="joomla" version="3.[789]" />
 	</update>
 </updates>
