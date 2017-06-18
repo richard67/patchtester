@@ -85,8 +85,6 @@ class FetchController extends AbstractController
 			{
 				$message = \JText::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', $status['page']);
 			}
-
-			unset($status['page']);
 		}
 
 		$response = new \JResponseJson($status, $message, false, true);

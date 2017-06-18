@@ -17,5 +17,8 @@
 <div id="patchtester-container">
 	<h1 id="patchtester-progress-header"><?php echo \JText::_('COM_PATCHTESTER_FETCH_INITIALIZING'); ?></h1>
 	<p id="patchtester-progress-message"><?php echo \JText::_('COM_PATCHTESTER_FETCH_INITIALIZING_DESCRIPTION'); ?></p>
+	<div id="progress" class="progress progress-striped active">
+		<div id="progress-bar" class="bar bar-success" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+	</div>
 	<input id="patchtester-token" type="hidden" name="<?php echo \JFactory::getSession()->getFormToken(); ?>" value="1" />
 </div>

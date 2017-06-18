@@ -24,7 +24,9 @@ if (typeof Joomla === 'undefined') {
     var PatchFetcher = function () {
         var offset = null,
             progress = null,
-            path = 'index.php?option=com_patchtester&tmpl=component&format=json';
+            path = 'index.php?option=com_patchtester&tmpl=component&format=json',
+            lastPage = null,
+            progressBar = jQuery('#progress-bar');
 
         var initialize = function () {
             offset = 0;
@@ -45,8 +47,26 @@ if (typeof Joomla === 'undefined') {
                         if (response === null) {
                             throw textStatus;
                         }
+
                         if (response.error) {
                             throw response;
+                        }
+
+                        // Store the last page if it is part of this request and not a boolean false
+                        if (typeof response.data.lastPage !== 'undefined' && response.data.lastPage !== false) {
+                            lastPage = response.data.lastPage;
+                        }
+
+                        // Update the progress bar if we have the data to do so
+                        if (typeof response.data.page !== 'undefined') {
+                            progress = (response.data.page / lastPage) * 100;
+
+                            if (progress < 100) {
+                                progressBar.css('width', progress + '%').attr('aria-valuenow', progress);
+                            } else {
+                                progressBar.removeClass('bar-success').addClass('bar-warning').attr('aria-valuemin', 100).attr('aria-valuemax', 200);
+                                progressBar.css('width', progress + '%').attr('aria-valuenow', progress);
+                            }
                         }
 
                         jQuery('#patchtester-progress-message').html(response.message);
@@ -58,6 +78,8 @@ if (typeof Joomla === 'undefined') {
                         if (!response.data.complete) {
                             // Send another request
                             getRequest('fetch');
+                        } else {
+                            jQuery('#progress').remove();
                         }
                     } catch (error) {
                         try {
@@ -72,14 +94,16 @@ if (typeof Joomla === 'undefined') {
 
                             jQuery('#patchtester-progress-header').text(Joomla.JText._('COM_PATCHTESTER_FETCH_AN_ERROR_HAS_OCCURRED'));
                             jQuery('#patchtester-progress-message').html(error);
+                            jQuery('#progress').remove();
                         }
                     }
                     return true;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    var json = (typeof jqXHR == 'object' && jqXHR.responseText) ? jqXHR.responseText : null;
+                    var json = (typeof jqXHR === 'object' && jqXHR.responseText) ? jqXHR.responseText : null;
                     jQuery('#patchtester-progress-header').text(Joomla.JText._('COM_PATCHTESTER_FETCH_AN_ERROR_HAS_OCCURRED'));
                     jQuery('#patchtester-progress-message').html(json);
+                    jQuery('#progress').remove();
                 }
             });
         }
@@ -90,7 +114,7 @@ if (typeof Joomla === 'undefined') {
     jQuery(function () {
         new PatchFetcher();
 
-        if (typeof window.parent.SqueezeBox == 'object') {
+        if (typeof window.parent.SqueezeBox === 'object') {
             jQuery(window.parent.SqueezeBox).on('close', function () {
                 window.parent.location.reload(true);
             });
