@@ -8,6 +8,8 @@
 
 namespace PatchTester\GitHub\Exception;
 
+use Joomla\CMS\Http\Response;
+
 /**
  * Exception representing an unexpected response
  *
@@ -18,7 +20,7 @@ class UnexpectedResponse extends \DomainException
 	/**
 	 * The Response object.
 	 *
-	 * @var    \JHttpResponse
+	 * @var    Response
 	 * @since  3.0.0
 	 */
 	private $response;
@@ -26,14 +28,14 @@ class UnexpectedResponse extends \DomainException
 	/**
 	 * Constructor
 	 *
-	 * @param   \JHttpResponse  $response  The Response object.
-	 * @param   string          $message   The Exception message to throw.
-	 * @param   integer         $code      The Exception code.
-	 * @param   \Exception      $previous  The previous exception used for the exception chaining.
+	 * @param   Response    $response  The Response object.
+	 * @param   string      $message   The Exception message to throw.
+	 * @param   integer     $code      The Exception code.
+	 * @param   \Exception  $previous  The previous exception used for the exception chaining.
 	 *
 	 * @since   3.0.0
 	 */
-	public function __construct(\JHttpResponse $response, $message = '', $code = 0, \Exception $previous = null)
+	public function __construct(Response $response, $message = '', $code = 0, \Exception $previous = null)
 	{
 		parent::__construct($message, $code, $previous);
 
@@ -43,9 +45,9 @@ class UnexpectedResponse extends \DomainException
 	/**
 	 * Get the Response object.
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
-	 * @since  3.0.0
+	 * @since   3.0.0
 	 */
 	public function getResponse()
 	{

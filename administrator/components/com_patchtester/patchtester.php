@@ -8,14 +8,16 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
+
 // Access check.
-if (!JFactory::getUser()->authorise('core.manage', 'com_patchtester'))
+if (!Factory::getUser()->authorise('core.manage', 'com_patchtester'))
 {
 	throw new RuntimeException(JText::_('JERROR_ALERTNOAUTHOR'), 403);
 }
 
 // Application reference
-$app = JFactory::getApplication();
+$app = Factory::getApplication();
 
 // Import our Composer autoloader to load the component classes
 require_once __DIR__ . '/vendor/autoload.php';

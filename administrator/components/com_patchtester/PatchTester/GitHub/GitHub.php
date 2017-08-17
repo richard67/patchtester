@@ -8,6 +8,10 @@
 
 namespace PatchTester\GitHub;
 
+use Joomla\CMS\Http\Http;
+use Joomla\CMS\Http\HttpFactory;
+use Joomla\CMS\Http\Response;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 
 /**
@@ -28,7 +32,7 @@ class GitHub
 	/**
 	 * The HTTP client object to use in sending HTTP requests.
 	 *
-	 * @var    \JHttp
+	 * @var    Http
 	 * @since  3.0.0
 	 */
 	protected $client;
@@ -37,14 +41,14 @@ class GitHub
 	 * Constructor.
 	 *
 	 * @param   Registry  $options  Connector options.
-	 * @param   \JHttp    $client   The HTTP client object.
+	 * @param   Http      $client   The HTTP client object.
 	 *
 	 * @since   3.0.0
 	 */
-	public function __construct(Registry $options = null, \JHttp $client = null)
+	public function __construct(Registry $options = null, Http $client = null)
 	{
 		$this->options = $options ?: new Registry;
-		$this->client  = $client ?: \JHttpFactory::getHttp($options);
+		$this->client  = $client ?: HttpFactory::getHttp($options);
 	}
 
 	/**
@@ -63,8 +67,8 @@ class GitHub
 	 */
 	protected function fetchUrl($path, $page = 0, $limit = 0)
 	{
-		// Get a new JUri object fousing the api url and given path.
-		$uri = new \JUri($this->options->get('api.url') . $path);
+		// Get a new Uri object using the API URL and given path.
+		$uri = new Uri($this->options->get('api.url') . $path);
 
 		// Only apply basic authentication if an access token is not set
 		if ($this->options->get('gh.token', false) === false)
@@ -103,7 +107,7 @@ class GitHub
 	/**
 	 * Get the HTTP client for this connector.
 	 *
-	 * @return  \JHttp
+	 * @return  Http
 	 *
 	 * @since   3.0.0
 	 */
@@ -119,7 +123,7 @@ class GitHub
 	 * @param   string   $repo    The name of the GitHub repository.
 	 * @param   integer  $pullId  The pull request number.
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
 	 * @since   3.0.0
 	 */
@@ -144,7 +148,7 @@ class GitHub
 	 * @param   string  $path  The content path.
 	 * @param   string  $ref   The name of the commit/branch/tag. Default: the repository’s default branch (usually master)
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
 	 * @since   3.0.0
 	 */
@@ -156,7 +160,7 @@ class GitHub
 
 		if ($ref)
 		{
-			$url = new \JUri($prepared['url']);
+			$url = new Uri($prepared['url']);
 			$url->setVar('ref', $ref);
 
 			$prepared['url'] = (string) $url;
@@ -172,7 +176,7 @@ class GitHub
 	 * @param   string   $repo    The name of the GitHub repository.
 	 * @param   integer  $pullId  The pull request number.
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
 	 * @since   3.0.0
 	 */
@@ -194,7 +198,7 @@ class GitHub
 	 * @param   integer  $page   The page number from which to get items.
 	 * @param   integer  $limit  The number of items on a page.
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
 	 * @since   3.0.0
 	 */
@@ -227,7 +231,7 @@ class GitHub
 	 * @param   string   $repo    The name of the GitHub repository.
 	 * @param   integer  $pullId  The pull request number.
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
 	 * @since   3.0.0
 	 */
@@ -244,7 +248,7 @@ class GitHub
 	/**
 	 * Get the rate limit for the authenticated user.
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
 	 * @since   3.0.0
 	 */
@@ -258,15 +262,15 @@ class GitHub
 	/**
 	 * Process the response and return it.
 	 *
-	 * @param   \JHttpResponse  $response      The response.
-	 * @param   integer         $expectedCode  The expected response code.
+	 * @param   Response  $response      The response.
+	 * @param   integer   $expectedCode  The expected response code.
 	 *
-	 * @return  \JHttpResponse
+	 * @return  Response
 	 *
 	 * @since   3.0.0
 	 * @throws  Exception\UnexpectedResponse
 	 */
-	protected function processResponse(\JHttpResponse $response, $expectedCode = 200)
+	protected function processResponse(Response $response, $expectedCode = 200)
 	{
 		// Validate the response code.
 		if ($response->code != $expectedCode)

@@ -8,8 +8,8 @@
 
 namespace PatchTester\Model;
 
+use Joomla\CMS\Pagination\Pagination;
 use Joomla\Registry\Registry;
-
 use PatchTester\GitHub\Exception\UnexpectedResponse;
 use PatchTester\Helper;
 
@@ -187,9 +187,9 @@ class PullsModel extends \JModelDatabase
 	}
 
 	/**
-	 * Method to get a JPagination object for the data set.
+	 * Method to get a Pagination object for the data set.
 	 *
-	 * @return  \JPagination  A JPagination object for the data set.
+	 * @return  Pagination  A Pagination object for the data set.
 	 *
 	 * @since   2.0
 	 */
@@ -205,7 +205,7 @@ class PullsModel extends \JModelDatabase
 		}
 
 		// Create the pagination object and add the object to the internal cache.
-		$this->cache[$store] = new \JPagination($this->getTotal(), $this->getStart(), (int) $this->getState()->get('list.limit', 20));
+		$this->cache[$store] = new Pagination($this->getTotal(), $this->getStart(), (int) $this->getState()->get('list.limit', 20));
 
 		return $this->cache[$store];
 	}

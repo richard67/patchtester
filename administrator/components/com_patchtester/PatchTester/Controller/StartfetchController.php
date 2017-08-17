@@ -8,9 +8,10 @@
 
 namespace PatchTester\Controller;
 
-use PatchTester\GitHub\Exception\UnexpectedResponse;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Response\JsonResponse;
+use Joomla\CMS\Session\Session;
 use PatchTester\Helper;
-use PatchTester\Model\PullsModel;
 use PatchTester\Model\TestsModel;
 
 /**
@@ -37,9 +38,9 @@ class StartfetchController extends AbstractController
 		$this->getApplication()->setHeader('Content-Type', $this->getApplication()->mimeType . '; charset=' . $this->getApplication()->charSet);
 
 		// Check for a valid token. If invalid, send a 403 with the error message.
-		if (!\JSession::checkToken('request'))
+		if (!Session::checkToken('request'))
 		{
-			$response = new \JResponseJson(new \Exception(\JText::_('JINVALID_TOKEN'), 403));
+			$response = new JsonResponse(new \Exception(\JText::_('JINVALID_TOKEN'), 403));
 
 			$this->getApplication()->sendHeaders();
 			echo json_encode($response);
@@ -55,7 +56,7 @@ class StartfetchController extends AbstractController
 		}
 		catch (\Exception $e)
 		{
-			$response = new \JResponseJson(
+			$response = new JsonResponse(
 				new \Exception(
 					\JText::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()),
 					$e->getCode(),
@@ -72,9 +73,9 @@ class StartfetchController extends AbstractController
 		// If over the API limit, we can't build this list
 		if ($rate->resources->core->remaining < 10)
 		{
-			$response = new \JResponseJson(
+			$response = new JsonResponse(
 				new \Exception(
-					\JText::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', \JFactory::getDate($rate->resources->core->reset)),
+					\JText::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset)),
 					429
 				)
 			);
@@ -85,14 +86,14 @@ class StartfetchController extends AbstractController
 			$this->getApplication()->close(1);
 		}
 
-		$testsModel = new TestsModel(null, \JFactory::getDbo());
+		$testsModel = new TestsModel(null, Factory::getDbo());
 
 		try
 		{
 			// Sanity check, ensure there aren't any applied patches
 			if (count($testsModel->getAppliedPatches()) >= 1)
 			{
-				$response = new \JResponseJson(new \Exception(\JText::_('COM_PATCHTESTER_ERROR_APPLIED_PATCHES'), 500));
+				$response = new JsonResponse(new \Exception(\JText::_('COM_PATCHTESTER_ERROR_APPLIED_PATCHES'), 500));
 
 				$this->getApplication()->sendHeaders();
 				echo json_encode($response);
@@ -102,7 +103,7 @@ class StartfetchController extends AbstractController
 		}
 		catch (\Exception $e)
 		{
-			$response = new \JResponseJson($e);
+			$response = new JsonResponse($e);
 
 			$this->getApplication()->sendHeaders();
 			echo json_encode($response);
@@ -111,9 +112,9 @@ class StartfetchController extends AbstractController
 		}
 
 		// We're able to successfully pull data, prepare our environment
-		\JFactory::getSession()->set('com_patchtester_fetcher_page', 1);
+		Factory::getSession()->set('com_patchtester_fetcher_page', 1);
 
-		$response = new \JResponseJson(
+		$response = new JsonResponse(
 			array('complete' => false, 'header' => \JText::_('COM_PATCHTESTER_FETCH_PROCESSING', true)),
 			\JText::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', 1),
 			false,

@@ -8,6 +8,7 @@
 
 namespace PatchTester\Controller;
 
+use Joomla\CMS\Factory;
 use PatchTester\Model\PullModel;
 
 /**
@@ -28,7 +29,7 @@ class ApplyController extends AbstractController
 	{
 		try
 		{
-			$model = new PullModel(null, \JFactory::getDbo());
+			$model = new PullModel(null, Factory::getDbo());
 
 			// Initialize the state for the model
 			$model->setState($this->initializeState($model));

@@ -8,6 +8,7 @@
 
 namespace PatchTester\Controller;
 
+use Joomla\CMS\Factory;
 use PatchTester\Model\PullModel;
 use PatchTester\Model\PullsModel;
 use PatchTester\Model\TestsModel;
@@ -32,9 +33,9 @@ class ResetController extends AbstractController
 		{
 			$hasErrors = false;
 
-			$pullModel  = new PullModel(null, \JFactory::getDbo());
-			$pullsModel = new PullsModel($this->context, null, \JFactory::getDbo());
-			$testsModel = new TestsModel(null, \JFactory::getDbo());
+			$pullModel  = new PullModel(null, Factory::getDbo());
+			$pullsModel = new PullsModel($this->context, null, Factory::getDbo());
+			$testsModel = new TestsModel(null, Factory::getDbo());
 
 			// Check the applied patches in the database first
 			$appliedPatches = $testsModel->getAppliedPatches();
@@ -113,7 +114,7 @@ class ResetController extends AbstractController
 			if ($hasErrors)
 			{
 				$msg = \JText::sprintf(
-					'COM_PATCHTESTER_RESET_HAS_ERRORS', JPATH_COMPONENT . '/backups', \JFactory::getDbo()->replacePrefix('#__patchtester_tests')
+					'COM_PATCHTESTER_RESET_HAS_ERRORS', JPATH_COMPONENT . '/backups', Factory::getDbo()->replacePrefix('#__patchtester_tests')
 				);
 				$type = 'warning';
 			}

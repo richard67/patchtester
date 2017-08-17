@@ -8,6 +8,8 @@
 
 namespace PatchTester\Controller;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Response\JsonResponse;
 use PatchTester\Model\PullsModel;
 
 /**
@@ -33,14 +35,14 @@ class FetchController extends AbstractController
 		$this->getApplication()->setHeader('Pragma', 'no-cache');
 		$this->getApplication()->setHeader('Content-Type', $this->getApplication()->mimeType . '; charset=' . $this->getApplication()->charSet);
 
-		$session = \JFactory::getSession();
+		$session = Factory::getSession();
 
 		try
 		{
 			// Fetch our page from the session
 			$page = $session->get('com_patchtester_fetcher_page', 1);
 
-			$model = new PullsModel('com_patchtester.fetch', null, \JFactory::getDbo());
+			$model = new PullsModel('com_patchtester.fetch', null, Factory::getDbo());
 
 			// Initialize the state for the model
 			$model->setState($this->initializeState($model));
@@ -49,7 +51,7 @@ class FetchController extends AbstractController
 		}
 		catch (\Exception $e)
 		{
-			$response = new \JResponseJson($e);
+			$response = new JsonResponse($e);
 
 			$this->getApplication()->sendHeaders();
 			echo json_encode($response);
@@ -87,7 +89,7 @@ class FetchController extends AbstractController
 			}
 		}
 
-		$response = new \JResponseJson($status, $message, false, true);
+		$response = new JsonResponse($status, $message, false, true);
 
 		$this->getApplication()->sendHeaders();
 		echo json_encode($response);

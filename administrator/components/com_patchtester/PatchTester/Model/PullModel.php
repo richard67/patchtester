@@ -8,6 +8,8 @@
 
 namespace PatchTester\Model;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Version;
 use PatchTester\GitHub\Exception\UnexpectedResponse;
 use PatchTester\Helper;
 
@@ -158,7 +160,7 @@ class PullModel extends \JModelDatabase
 		if ($rate->resources->core->remaining == 0)
 		{
 			throw new \RuntimeException(
-				\JText::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', \JFactory::getDate($rate->resources->core->reset))
+				\JText::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset))
 			);
 		}
 
@@ -309,7 +311,7 @@ class PullModel extends \JModelDatabase
 		$record = (object) array(
 			'pull_id'         => $pull->number,
 			'data'            => json_encode($parsedFiles),
-			'patched_by'      => \JFactory::getUser()->id,
+			'patched_by'      => Factory::getUser()->id,
 			'applied'         => 1,
 			'applied_version' => JVERSION,
 		);
@@ -327,7 +329,7 @@ class PullModel extends \JModelDatabase
 		)->execute();
 
 		// Change the media version
-		$version = new \JVersion;
+		$version = new Version;
 		$version->refreshMediaVersion();
 
 		return true;
@@ -445,7 +447,7 @@ class PullModel extends \JModelDatabase
 		}
 
 		// Change the media version
-		$version = new \JVersion;
+		$version = new Version;
 		$version->refreshMediaVersion();
 
 		return $this->removeTest($testRecord);

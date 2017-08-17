@@ -9,6 +9,8 @@
 namespace PatchTester\Controller;
 
 use Joomla\Application\AbstractApplication;
+use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\Registry\Registry;
 
 /**
@@ -16,7 +18,7 @@ use Joomla\Registry\Registry;
  *
  * @since  2.0
  *
- * @method  \JApplicationCms  getApplication()  getApplication()  Get the application object.
+ * @method  CMSApplication  getApplication()  getApplication()  Get the application object.
  */
 abstract class AbstractController extends \JControllerBase
 {
@@ -66,7 +68,7 @@ abstract class AbstractController extends \JControllerBase
 		$state = new Registry;
 
 		// Load the parameters.
-		$params = \JComponentHelper::getParams('com_patchtester');
+		$params = ComponentHelper::getParams('com_patchtester');
 
 		$state->set('github_user', $params->get('org', 'joomla'));
 		$state->set('github_repo', $params->get('repo', 'joomla-cms'));

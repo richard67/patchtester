@@ -6,12 +6,16 @@
  * @license    GNU General Public License version 2 or later
  */
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Installer\Adapter\ComponentAdapter;
+use Joomla\CMS\Installer\InstallerScript;
+
 /**
  * Installation class to perform additional changes during install/uninstall/update
  *
  * @since  2.0
  */
-class Com_PatchtesterInstallerScript extends JInstallerScript
+class Com_PatchtesterInstallerScript extends InstallerScript
 {
 	/**
 	 * Array of templates with supported overrides
@@ -28,7 +32,7 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 	 */
 	public function __construct()
 	{
-		$this->minimumJoomla = '3.7';
+		$this->minimumJoomla = '3.8';
 		$this->minimumPhp    = JOOMLA_MINIMUM_PHP;
 
 		$this->deleteFiles = array(
@@ -44,7 +48,7 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 	/**
 	 * Function to perform changes during install
 	 *
-	 * @param   JInstallerAdapterComponent  $parent  The class calling this method
+	 * @param   ComponentAdapter  $parent  The class calling this method
 	 *
 	 * @return  void
 	 *
@@ -58,7 +62,7 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 	/**
 	 * Function to perform changes during update
 	 *
-	 * @param   JInstallerAdapterComponent  $parent  The class calling this method
+	 * @param   ComponentAdapter  $parent  The class calling this method
 	 *
 	 * @return  void
 	 *
@@ -72,7 +76,7 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 	/**
 	 * Function to perform changes during uninstall
 	 *
-	 * @param   JInstallerAdapterComponent  $parent  The class calling this method
+	 * @param   ComponentAdapter  $parent  The class calling this method
 	 *
 	 * @return  void
 	 *
@@ -106,15 +110,15 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 		// If we couldn't remove any overrides, notify the user
 		if (count($errorTemplates) > 0)
 		{
-			JFactory::getApplication()->enqueueMessage(JText::sprintf('COM_PATCHTESTER_COULD_NOT_REMOVE_OVERRIDES', implode(', ', $errorTemplates)));
+			Factory::getApplication()->enqueueMessage(JText::sprintf('COM_PATCHTESTER_COULD_NOT_REMOVE_OVERRIDES', implode(', ', $errorTemplates)));
 		}
 	}
 
 	/**
 	 * Function to perform changes during postflight
 	 *
-	 * @param   string                      $type    The action being performed
-	 * @param   JInstallerAdapterComponent  $parent  The class calling this method
+	 * @param   string            $type    The action being performed
+	 * @param   ComponentAdapter  $parent  The class calling this method
 	 *
 	 * @return  void
 	 *
@@ -168,7 +172,7 @@ class Com_PatchtesterInstallerScript extends JInstallerScript
 		// If we couldn't remove any overrides, notify the user
 		if (count($errorTemplates) > 0)
 		{
-			JFactory::getApplication()->enqueueMessage(JText::sprintf('COM_PATCHTESTER_COULD_NOT_INSTALL_OVERRIDES', implode(', ', $errorTemplates)));
+			Factory::getApplication()->enqueueMessage(JText::sprintf('COM_PATCHTESTER_COULD_NOT_INSTALL_OVERRIDES', implode(', ', $errorTemplates)));
 		}
 	}
 }

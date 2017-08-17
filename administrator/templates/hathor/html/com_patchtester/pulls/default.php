@@ -6,6 +6,9 @@
  * @license    GNU General Public License version 2 or later
  */
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
+
 /** @var  \PatchTester\View\Pulls\PullsHtmlView  $this */
 
 \JHtml::_('behavior.core');
@@ -20,7 +23,7 @@ $filterBranch  = $this->escape($this->state->get('filter.branch'));
 $filterRtc     = $this->escape($this->state->get('filter.rtc'));
 $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 
-\JFactory::getDocument()->addStyleDeclaration(
+Factory::getDocument()->addStyleDeclaration(
 	'
 	.icon-48-patchtester { background-image:url("/media/com_patchtester/images/icon-48-patchtester.png"); }
 	'
@@ -29,7 +32,7 @@ echo \JHtml::_(
 	'bootstrap.renderModal',
 	'modal-refresh',
 	array(
-		'url' => \JUri::root() . 'administrator/index.php?option=com_patchtester&view=fetch&tmpl=component',
+		'url' => Uri::root() . 'administrator/index.php?option=com_patchtester&view=fetch&tmpl=component',
 		'title' => \JText::_('COM_PATCHTESTER_TOOLBAR_FETCH_DATA'),
 		'width' => '800px',
 		'height' => '300px'
@@ -41,25 +44,25 @@ echo \JHtml::_(
 		<fieldset id="filter-bar">
 			<legend class="element-invisible"><?php echo \JText::_('JSEARCH_FILTER_LABEL'); ?></legend>
 			<div class="filter-search">
-				<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSEARCH_FILTER_LABEL'); ?></label>
+				<label class="filter-search-lbl" for="filter_search"><?php echo \JText::_('JSEARCH_FILTER_LABEL'); ?></label>
 				<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" title="<?php echo \JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'); ?>" />
 				<button type="submit" class="btn"><?php echo \JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
 				<button type="button" onclick="document.getElementById('filter_search').value='';this.form.submit();"><?php echo \JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
 			</div>
 			<div class="filter-select">
-				<label class="selectlabel" for="filter_applied"><?php echo JText::_('COM_PATCHTESTER_FILTER_APPLIED_PATCHES'); ?></label>
+				<label class="selectlabel" for="filter_applied"><?php echo \JText::_('COM_PATCHTESTER_FILTER_APPLIED_PATCHES'); ?></label>
 				<select name="filter_applied" id="filter_applied">
 					<option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_APPLIED_PATCHES'); ?></option>
 					<option value="yes"<?php if ($filterApplied == 'yes') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_APPLIED'); ?></option>
 					<option value="no"<?php if ($filterApplied == 'no') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_NOT_APPLIED'); ?></option>
 				</select>
-				<label class="selectlabel" for="filter_rtc"><?php echo JText::_('COM_PATCHTESTER_FILTER_RTC_PATCHES'); ?></label>
+				<label class="selectlabel" for="filter_rtc"><?php echo \JText::_('COM_PATCHTESTER_FILTER_RTC_PATCHES'); ?></label>
 				<select name="filter_rtc" id="filter_rtc">
 					<option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_RTC_PATCHES'); ?></option>
 					<option value="yes"<?php if ($filterRtc == 'yes') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_RTC'); ?></option>
 					<option value="no"<?php if ($filterRtc == 'no') echo ' selected="selected"'; ?>><?php echo \JText::_('COM_PATCHTESTER_NOT_RTC'); ?></option>
 				</select>
-				<label class="selectlabel" for="filter_branch"><?php echo JText::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></label>
+				<label class="selectlabel" for="filter_branch"><?php echo \JText::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></label>
 				<select name="filter_branch" id="filter_branch">
 					<option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></option>
 					<?php echo \JHtml::_('select.options', $this->branches, 'text', 'text', $filterBranch, false);?>

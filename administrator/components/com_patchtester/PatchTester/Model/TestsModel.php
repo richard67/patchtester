@@ -8,10 +8,6 @@
 
 namespace PatchTester\Model;
 
-use Joomla\Registry\Registry;
-
-use PatchTester\Helper;
-
 /**
  * Methods supporting applied pull requests.
  *

@@ -8,6 +8,10 @@
 
 namespace PatchTester\View\Pulls;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Pagination\Pagination;
+use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\Registry\Registry;
 use PatchTester\TrackerHelper;
 use PatchTester\View\DefaultHtmlView;
 
@@ -47,7 +51,7 @@ class PullsHtmlView extends DefaultHtmlView
 	/**
 	 * Pagination object
 	 *
-	 * @var    \JPagination
+	 * @var    Pagination
 	 * @since  2.0
 	 */
 	protected $pagination;
@@ -55,7 +59,7 @@ class PullsHtmlView extends DefaultHtmlView
 	/**
 	 * The model state
 	 *
-	 * @var    \Joomla\Registry\Registry
+	 * @var    Registry
 	 * @since  2.0
 	 */
 	protected $state;
@@ -111,7 +115,7 @@ class PullsHtmlView extends DefaultHtmlView
 		// Set a warning on 4.0 branch
 		if (version_compare(JVERSION, '4.0', 'ge'))
 		{
-			\JFactory::getApplication()->enqueueMessage(\JText::_('COM_PATCHTESTER_40_WARNING'), 'warning');
+			Factory::getApplication()->enqueueMessage(\JText::_('COM_PATCHTESTER_40_WARNING'), 'warning');
 		}
 
 		return parent::render();
@@ -130,7 +134,7 @@ class PullsHtmlView extends DefaultHtmlView
 
 		if (!count($this->envErrors))
 		{
-			$toolbar = \JToolbar::getInstance('toolbar');
+			$toolbar = Toolbar::getInstance('toolbar');
 
 			$toolbar->appendButton(
 				'Popup',

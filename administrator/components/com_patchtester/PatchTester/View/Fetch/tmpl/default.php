@@ -6,6 +6,8 @@
  * @license    GNU General Public License version 2 or later
  */
 
+use Joomla\CMS\Factory;
+
 /** @var \PatchTester\View\DefaultHtmlView $this */
 
 \JHtml::_('jquery.framework');
@@ -20,5 +22,5 @@
 	<div id="progress" class="progress progress-striped active">
 		<div id="progress-bar" class="bar bar-success" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
 	</div>
-	<input id="patchtester-token" type="hidden" name="<?php echo \JFactory::getSession()->getFormToken(); ?>" value="1" />
+	<input id="patchtester-token" type="hidden" name="<?php echo Factory::getSession()->getFormToken(); ?>" value="1" />
 </div>
