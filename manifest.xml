@@ -11,6 +11,7 @@
 		<downloads>
 			<downloadurl type="full" format="zip">https://github.com/joomla-extensions/patchtester/releases/download/2.0.1/com_patchtester.zip</downloadurl>
 		</downloads>
+		<sha384>f54a41cbfdc672fc1f0318adc179bf25412a1a1a89c1e2720c35c62740eb35b35f43421b72085270d0b17f3c4729aa64</sha384>
 		<tags>
 			<tag>stable</tag>
 		</tags>
@@ -27,6 +28,7 @@
 		<downloads>
 			<downloadurl type="full" format="zip">https://github.com/joomla-extensions/patchtester/releases/download/3.0.0-beta3/com_patchtester.zip</downloadurl>
 		</downloads>
+		<sha384>148ada954131b6f6fd8e787be4b07ffef9ee70042817de27ba5c9f720c2222675d2ffeb9f3310c2b0784996b4043d62f</sha384>
 		<tags>
 			<tag>beta</tag>
 		</tags>
