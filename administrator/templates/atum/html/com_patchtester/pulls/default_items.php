@@ -34,7 +34,7 @@ foreach ($this->items as $i => $item) :
 		<?php if ($item->is_rtc) : ?>
 			<span class="badge badge-success"><?php echo \JText::_('JYES'); ?></span>
 		<?php else : ?>
-			<span class="badge badge-default"><?php echo \JText::_('JNO'); ?></span>
+			<span class="badge badge-secondary"><?php echo \JText::_('JNO'); ?></span>
 		<?php endif; ?>
 	</td>
 	<td class="text-center">
@@ -53,7 +53,7 @@ foreach ($this->items as $i => $item) :
 		<?php if ($item->applied) : ?>
             <span class="badge badge-success"><?php echo \JText::_('COM_PATCHTESTER_APPLIED'); ?></span>
 		<?php else : ?>
-			<span class="badge badge-default"><?php echo \JText::_('COM_PATCHTESTER_NOT_APPLIED'); ?></span>
+			<span class="badge badge-secondary"><?php echo \JText::_('COM_PATCHTESTER_NOT_APPLIED'); ?></span>
 		<?php endif; ?>
 	</td>
 	<td class="text-center">
