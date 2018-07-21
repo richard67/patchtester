@@ -116,7 +116,13 @@ if (!isset($opts['exclude-manifest']))
 		$fileContents = preg_replace('#<infourl title="Patch Tester Component">[^<]*</infourl>#', '<infourl title="Patch Tester Component">https://github.com/joomla-extensions/patchtester/releases/tag/' . $version['release'] . '</infourl>', $fileContents);
 		$fileContents = preg_replace('#<downloadurl type="full" format="zip">[^<]*</downloadurl>#', '<downloadurl type="full" format="zip">https://github.com/joomla-extensions/patchtester/releases/download/' . $version['release'] . '/com_patchtester.zip</downloadurl>', $fileContents);
 		file_put_contents($rootPath . $updateServerFile, $fileContents);
+
+		echo '*************' . PHP_EOL;
+		echo '* IMPORTANT *' . PHP_EOL;
+		echo '*************' . PHP_EOL;
+		echo '' . PHP_EOL;
+		echo 'Ensure you regenerate the SHA384 package hash before publishing the updated manifest!!!' . PHP_EOL;
 	}
 }
 
-echo 'Version bump complete!' . PHP_EOL;
+echo 'Version bump complete!' . PHP_EOL . PHP_EOL;
