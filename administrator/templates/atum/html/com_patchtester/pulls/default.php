@@ -141,16 +141,14 @@ $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 									</th>
 								</tr>
 							</thead>
-							<tfoot>
-								<tr>
-									<td colspan="<?php echo $colSpan; ?>"><?php echo $this->pagination->getListFooter(); ?></td>
-								</tr>
-							</tfoot>
 							<tbody>
 								<?php echo $this->loadTemplate('items'); ?>
 							</tbody>
 						</table>
 					<?php endif; ?>
+
+					<?php echo $this->pagination->getListFooter(); ?>
+
 					<input type="hidden" name="task" value="" />
 					<input type="hidden" name="boxchecked" value="0" />
 					<input type="hidden" name="pull_id" id="pull_id" value="" />
