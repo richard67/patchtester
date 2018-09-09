@@ -78,6 +78,7 @@ class GitHub
 			{
 				$username = $this->options->get('api.username');
 				$username = str_replace('@', '%40', $username);
+				$username = str_replace('#', '%23', $username);
 				$uri->setUser($username);
 			}
 
@@ -85,6 +86,7 @@ class GitHub
 			{
 				$password = $this->options->get('api.password');
 				$password = str_replace('@', '%40', $password);
+				$password = str_replace('#', '%23', $password);
 				$uri->setPass($password);
 			}
 		}
