@@ -59,7 +59,7 @@ $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 							</button>
 							<div class="btn-group">
 								<button type="button" class="btn btn-primary hasTooltip js-stools-btn-filter">
-									<?php echo \JText::_('JTABLE_OPTIONS'); ?>
+									<?php echo \JText::_('JFILTER_OPTIONS'); ?>
 									<span class="fa fa-caret-down" aria-hidden="true"></span>
 								</button>
 							</div>
