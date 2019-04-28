@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS "#__patchtester_pulls" (
   PRIMARY KEY ("id")
 );
 
-CREATE TABLE "#__patchtester_tests" (
+CREATE TABLE IF NOT EXISTS "#__patchtester_tests" (
   "id" serial NOT NULL,
   "pull_id" bigint NOT NULL,
   "data" text NOT NULL,
