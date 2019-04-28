@@ -14,6 +14,7 @@
 		<sql>
 			<file driver="mysql" charset="utf8">install/sql/mysql/install.sql</file>
 			<file driver="postgresql" charset="utf8">install/sql/postgresql/install.sql</file>
+			<file driver="pgsql" charset="utf8">install/sql/postgresql/install.sql</file>
 			<file driver="sqlsrv" charset="utf8">install/sql/sqlsrv/install.sql</file>
 		</sql>
 	</install>
@@ -21,6 +22,7 @@
 		<sql>
 			<file driver="mysql" charset="utf8">install/sql/mysql/uninstall.sql</file>
 			<file driver="postgresql" charset="utf8">install/sql/postgresql/uninstall.sql</file>
+			<file driver="pgsql" charset="utf8">install/sql/postgresql/uninstall.sql</file>
 			<file driver="sqlsrv" charset="utf8">install/sql/sqlsrv/uninstall.sql</file>
 		</sql>
 	</uninstall>
@@ -28,6 +30,7 @@
 		<schemas>
 			<schemapath type="mysql">install/sql/updates/mysql</schemapath>
 			<schemapath type="postgresql">install/sql/updates/postgresql</schemapath>
+			<schemapath type="pgsql">install/sql/updates/postgresql</schemapath>
 			<schemapath type="sqlsrv">install/sql/updates/sqlsrv</schemapath>
 		</schemas>
 	</update>
