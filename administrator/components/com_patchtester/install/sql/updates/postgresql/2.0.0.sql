@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "#__patchtester_pulls" (
   "description" character varying(150) DEFAULT '' NOT NULL,
   "pull_url" character varying(255) NOT NULL,
   "sha" character varying(40) DEFAULT '' NOT NULL,
-  "branch" character varying(255) DEFAULT '' NOT NULL,
+  "is_rtc" smallint DEFAULT 1 NOT NULL,
   PRIMARY KEY ("id")
 );
 
