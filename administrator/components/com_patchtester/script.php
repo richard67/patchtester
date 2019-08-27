@@ -23,7 +23,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 	 * @var    array
 	 * @since  2.0
 	 */
-	protected $templateOverrides = array('atum', 'hathor');
+	protected $templateOverrides = array('atum');
 
 	/**
 	 * Extension script constructor.
@@ -37,10 +37,14 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 
 		$this->deleteFiles = array(
 			'/administrator/components/com_patchtester/PatchTester/View/Pulls/tmpl/default_errors.php',
+			'/administrator/templates/hathor/html/com_patchtester/pulls/default.php',
+			'/administrator/templates/hathor/html/com_patchtester/pulls/default_items.php',
 		);
 
 		$this->deleteFolders = array(
 			'/administrator/components/com_patchtester/PatchTester/Table',
+			'/administrator/templates/hathor/html/com_patchtester/pulls',
+			'/administrator/templates/hathor/html/com_patchtester',
 			'/components/com_patchtester',
 		);
 	}
