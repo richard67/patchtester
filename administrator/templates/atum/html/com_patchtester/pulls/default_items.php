@@ -45,7 +45,7 @@ foreach ($this->items as $i => $item) :
 	<?php if ($this->trackerAlias !== false) : ?>
 	<td class="text-center">
 		<a class="btn btn-sm btn-warning" href="https://issues.joomla.org/tracker/<?php echo $this->trackerAlias; ?>/<?php echo $item->pull_id; ?>" target="_blank">
-			<i class="icon-joomla"></i> <?php echo \JText::_('COM_PATCHTESTER_JISSUE'); ?>
+			<i class="fab fa-joomla"></i> <?php echo \JText::_('COM_PATCHTESTER_JISSUE'); ?>
 		</a>
 	</td>
 	<?php endif; ?>
