@@ -8,9 +8,6 @@
     "config": {
         "vendor-dir": "administrator/components/com_patchtester/vendor"
     },
-    "require": {
-        "php": ">=5.3.10"
-    },
     "require-dev": {
         "joomla/crowdin-sync": "dev-master",
         "squizlabs/php_codesniffer": "~1.5"
