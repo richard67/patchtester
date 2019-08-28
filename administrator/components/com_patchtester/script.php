@@ -32,7 +32,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 	 */
 	public function __construct()
 	{
-		$this->minimumJoomla = '3.8';
+		$this->minimumJoomla = '3.9';
 		$this->minimumPhp    = JOOMLA_MINIMUM_PHP;
 
 		$this->deleteFiles = array(
