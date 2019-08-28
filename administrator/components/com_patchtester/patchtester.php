@@ -40,5 +40,5 @@ if (!class_exists($class))
 
 // Instantiate and execute the controller
 /** @var \PatchTester\Controller\AbstractController $controller */
-$controller = new $class($app->input, $app);
+$controller = new $class($app);
 $controller->execute();

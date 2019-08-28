@@ -8,20 +8,26 @@
 
 namespace PatchTester\Controller;
 
-use Joomla\Application\AbstractApplication;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\Input\Input;
 use Joomla\Registry\Registry;
 
 /**
  * Base controller for the patch testing component
  *
  * @since  2.0
- *
- * @method  CMSApplication  getApplication()  getApplication()  Get the application object.
  */
-abstract class AbstractController extends \JControllerBase
+abstract class AbstractController
 {
+	/**
+	 * The active application
+	 *
+	 * @var    CMSApplication
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $app;
+
 	/**
 	 * The object context
 	 *
@@ -41,17 +47,40 @@ abstract class AbstractController extends \JControllerBase
 	/**
 	 * Instantiate the controller
 	 *
-	 * @param   \JInput              $input  The input object.
-	 * @param   AbstractApplication  $app    The application object.
+	 * @param   CMSApplication  $app  The application object.
 	 *
 	 * @since   2.0
 	 */
-	public function __construct(\JInput $input = null, AbstractApplication $app = null)
+	public function __construct(CMSApplication $app)
 	{
-		parent::__construct($input, $app);
+		$this->app = $app;
 
 		// Set the context for the controller
 		$this->context = 'com_patchtester.' . $this->getInput()->getCmd('view', $this->defaultView);
+	}
+
+	/**
+	 * Get the application object.
+	 *
+	 * @return  CMSApplication
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getApplication()
+	{
+		return $this->app;
+	}
+
+	/**
+	 * Get the input object.
+	 *
+	 * @return  Input
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getInput()
+	{
+		return $this->app->input;
 	}
 
 	/**
