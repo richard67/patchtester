@@ -10,6 +10,7 @@ namespace PatchTester\Controller;
 
 use Joomla\CMS\Factory;
 use Joomla\Registry\Registry;
+use PatchTester\Model\AbstractModel;
 
 /**
  * Default display controller
@@ -89,13 +90,13 @@ class DisplayController extends AbstractController
 	/**
 	 * Sets the state for the model object
 	 *
-	 * @param   \JModel  $model  Model object
+	 * @param   AbstractModel  $model  Model object
 	 *
 	 * @return  Registry
 	 *
 	 * @since   2.0
 	 */
-	protected function initializeState(\JModel $model)
+	protected function initializeState(AbstractModel $model)
 	{
 		$state = parent::initializeState($model);
 

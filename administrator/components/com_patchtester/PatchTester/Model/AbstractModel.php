@@ -21,7 +21,7 @@ abstract class AbstractModel
 	/**
 	 * The database driver.
 	 *
-	 * @var    JDatabaseDriver
+	 * @var    \JDatabaseDriver
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $db;
@@ -37,12 +37,12 @@ abstract class AbstractModel
 	/**
 	 * Instantiate the model.
 	 *
-	 * @param   Registry         $state  The model state.
-	 * @param   JDatabaseDriver  $db     The database adpater.
+	 * @param   Registry          $state  The model state.
+	 * @param   \JDatabaseDriver  $db     The database adpater.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public function __construct(Registry $state = null, JDatabaseDriver $db = null)
+	public function __construct(Registry $state = null, \JDatabaseDriver $db = null)
 	{
 		$this->state = $state ?: new Registry;
 		$this->db    = $db ?: Factory::getDbo();
@@ -51,7 +51,7 @@ abstract class AbstractModel
 	/**
 	 * Get the database driver.
 	 *
-	 * @return  JDatabaseDriver
+	 * @return  \JDatabaseDriver
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
@@ -75,13 +75,13 @@ abstract class AbstractModel
 	/**
 	 * Set the database driver.
 	 *
-	 * @param   JDatabaseDriver  $db  The database driver.
+	 * @param   \JDatabaseDriver  $db  The database driver.
 	 *
 	 * @return  void
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public function setDb(JDatabaseDriver $db)
+	public function setDb(\JDatabaseDriver $db)
 	{
 		$this->db = $db;
 	}
