@@ -9,6 +9,7 @@
 namespace PatchTester\Controller;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Response\JsonResponse;
 use PatchTester\Model\PullsModel;
 
@@ -69,9 +70,9 @@ class FetchController extends AbstractController
 		if ($status['complete'] || $page === $session->get('com_patchtester_fetcher_last_page', false))
 		{
 			$status['complete'] = true;
-			$status['header']   = \JText::_('COM_PATCHTESTER_FETCH_SUCCESSFUL', true);
+			$status['header']   = Text::_('COM_PATCHTESTER_FETCH_SUCCESSFUL', true);
 
-			$message = \JText::_('COM_PATCHTESTER_FETCH_COMPLETE_CLOSE_WINDOW', true);
+			$message = Text::_('COM_PATCHTESTER_FETCH_COMPLETE_CLOSE_WINDOW', true);
 		}
 		elseif (isset($status['page']))
 		{
@@ -79,13 +80,13 @@ class FetchController extends AbstractController
 
 			if ($session->has('com_patchtester_fetcher_last_page'))
 			{
-				$message = \JText::sprintf(
+				$message = Text::sprintf(
 					'COM_PATCHTESTER_FETCH_PAGE_NUMBER_OF_TOTAL', $status['page'], $session->get('com_patchtester_fetcher_last_page')
 				);
 			}
 			else
 			{
-				$message = \JText::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', $status['page']);
+				$message = Text::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', $status['page']);
 			}
 		}
 

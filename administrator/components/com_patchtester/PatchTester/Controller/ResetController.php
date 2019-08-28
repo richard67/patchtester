@@ -9,6 +9,10 @@
 namespace PatchTester\Controller;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\Folder;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+use Joomla\Filesystem\File;
 use PatchTester\Model\PullModel;
 use PatchTester\Model\PullsModel;
 use PatchTester\Model\TestsModel;
@@ -69,7 +73,7 @@ class ResetController extends AbstractController
 						$hasErrors = true;
 
 						$this->getApplication()->enqueueMessage(
-							\JText::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_PULLS_TABLE', $e->getMessage()), 'error'
+							Text::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_PULLS_TABLE', $e->getMessage()), 'error'
 						);
 					}
 				}
@@ -85,24 +89,21 @@ class ResetController extends AbstractController
 				$hasErrors = true;
 
 				$this->getApplication()->enqueueMessage(
-					\JText::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_TESTS_TABLE', $e->getMessage()), 'error'
+					Text::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_TESTS_TABLE', $e->getMessage()), 'error'
 				);
 			}
 
-			jimport('joomla.filesystem.file');
-			jimport('joomla.filesystem.folder');
-
 			// Check the backups directory to see if any .txt files remain; clear them if so
-			$backups = \JFolder::files(JPATH_COMPONENT . '/backups', '.txt');
+			$backups = Folder::files(JPATH_COMPONENT . '/backups', '.txt');
 
 			if (count($backups))
 			{
 				foreach ($backups as $file)
 				{
-					if (!\JFile::delete(JPATH_COMPONENT . '/backups/' . $file))
+					if (!File::delete(JPATH_COMPONENT . '/backups/' . $file))
 					{
 						$this->getApplication()->enqueueMessage(
-							\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_COMPONENT . '/backups/' . $file), 'error'
+							Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_COMPONENT . '/backups/' . $file), 'error'
 						);
 
 						$hasErrors = true;
@@ -113,14 +114,14 @@ class ResetController extends AbstractController
 			// Processing completed, inform the user of a success or fail
 			if ($hasErrors)
 			{
-				$msg = \JText::sprintf(
+				$msg = Text::sprintf(
 					'COM_PATCHTESTER_RESET_HAS_ERRORS', JPATH_COMPONENT . '/backups', Factory::getDbo()->replacePrefix('#__patchtester_tests')
 				);
 				$type = 'warning';
 			}
 			else
 			{
-				$msg  = \JText::_('COM_PATCHTESTER_RESET_OK');
+				$msg  = Text::_('COM_PATCHTESTER_RESET_OK');
 				$type = 'notice';
 			}
 		}
@@ -131,6 +132,6 @@ class ResetController extends AbstractController
 		}
 
 		$this->getApplication()->enqueueMessage($msg, $type);
-		$this->getApplication()->redirect(\JRoute::_('index.php?option=com_patchtester', false));
+		$this->getApplication()->redirect(Route::_('index.php?option=com_patchtester', false));
 	}
 }

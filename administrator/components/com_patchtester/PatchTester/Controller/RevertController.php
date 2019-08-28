@@ -9,6 +9,8 @@
 namespace PatchTester\Controller;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
 use PatchTester\Model\PullModel;
 
 /**
@@ -36,7 +38,7 @@ class RevertController extends AbstractController
 
 			$model->revert($this->getInput()->getUint('pull_id'));
 
-			$msg  = \JText::_('COM_PATCHTESTER_REVERT_OK');
+			$msg  = Text::_('COM_PATCHTESTER_REVERT_OK');
 			$type = 'message';
 		}
 		catch (\Exception $e)
@@ -46,6 +48,6 @@ class RevertController extends AbstractController
 		}
 
 		$this->getApplication()->enqueueMessage($msg, $type);
-		$this->getApplication()->redirect(\JRoute::_('index.php?option=com_patchtester', false));
+		$this->getApplication()->redirect(Route::_('index.php?option=com_patchtester', false));
 	}
 }

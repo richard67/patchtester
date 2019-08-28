@@ -8,6 +8,8 @@
 
 namespace PatchTester\View;
 
+use Joomla\CMS\Filesystem\Path;
+use Joomla\CMS\Language\Text;
 use PatchTester\Model\AbstractModel;
 
 /**
@@ -88,10 +90,10 @@ abstract class AbstractHtmlView extends AbstractView
 	public function getPath($layout)
 	{
 		// Get the layout file name.
-		$file = \JPath::clean($layout . '.php');
+		$file = Path::clean($layout . '.php');
 
 		// Find the layout file path.
-		$path = \JPath::find(clone $this->paths, $file);
+		$path = Path::find(clone $this->paths, $file);
 
 		return $path;
 	}
@@ -132,7 +134,7 @@ abstract class AbstractHtmlView extends AbstractView
 
 		if (!$path)
 		{
-			throw new \RuntimeException(\JText::sprintf('JLIB_APPLICATION_ERROR_LAYOUTFILE_NOT_FOUND', $file), 500);
+			throw new \RuntimeException(Text::sprintf('JLIB_APPLICATION_ERROR_LAYOUTFILE_NOT_FOUND', $file), 500);
 		}
 
 		// Unset so as not to introduce into template scope

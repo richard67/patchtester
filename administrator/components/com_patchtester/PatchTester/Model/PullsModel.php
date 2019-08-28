@@ -8,6 +8,8 @@
 
 namespace PatchTester\Model;
 
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\Registry\Registry;
 use PatchTester\GitHub\Exception\UnexpectedResponse;
@@ -327,7 +329,7 @@ class PullsModel extends AbstractModel
 		}
 		catch (UnexpectedResponse $e)
 		{
-			throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_GITHUB_FETCH', $e->getMessage()), $e->getCode(), $e);
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_GITHUB_FETCH', $e->getMessage()), $e->getCode(), $e);
 		}
 
 		// If this is page 1, let's check to see if we need to paginate
@@ -389,8 +391,8 @@ class PullsModel extends AbstractModel
 				// Build the data object to store in the database
 				$pullData = array(
 					(int) $pull->number,
-					$this->getDb()->quote(\JHtml::_('string.truncate', $pull->title, 150)),
-					$this->getDb()->quote(\JHtml::_('string.truncate', $pull->body, 100)),
+					$this->getDb()->quote(HTMLHelper::_('string.truncate', $pull->title, 150)),
+					$this->getDb()->quote(HTMLHelper::_('string.truncate', $pull->body, 100)),
 					$this->getDb()->quote($pull->pull_request->html_url),
 					(int) $isRTC,
 					$this->getDb()->quote($branch),
@@ -419,7 +421,7 @@ class PullsModel extends AbstractModel
 		}
 		catch (\RuntimeException $e)
 		{
-			throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_INSERT_DATABASE', $e->getMessage()), $e->getCode(), $e);
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_INSERT_DATABASE', $e->getMessage()), $e->getCode(), $e);
 		}
 
 		// Need to make another request

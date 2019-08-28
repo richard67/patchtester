@@ -9,6 +9,7 @@
 namespace PatchTester\Controller;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Session\Session;
 use PatchTester\Helper;
@@ -40,7 +41,7 @@ class StartfetchController extends AbstractController
 		// Check for a valid token. If invalid, send a 403 with the error message.
 		if (!Session::checkToken('request'))
 		{
-			$response = new JsonResponse(new \Exception(\JText::_('JINVALID_TOKEN'), 403));
+			$response = new JsonResponse(new \Exception(Text::_('JINVALID_TOKEN'), 403));
 
 			$this->getApplication()->sendHeaders();
 			echo json_encode($response);
@@ -58,7 +59,7 @@ class StartfetchController extends AbstractController
 		{
 			$response = new JsonResponse(
 				new \Exception(
-					\JText::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()),
+					Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()),
 					$e->getCode(),
 					$e
 				)
@@ -75,7 +76,7 @@ class StartfetchController extends AbstractController
 		{
 			$response = new JsonResponse(
 				new \Exception(
-					\JText::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset)),
+					Text::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset)),
 					429
 				)
 			);
@@ -93,7 +94,7 @@ class StartfetchController extends AbstractController
 			// Sanity check, ensure there aren't any applied patches
 			if (count($testsModel->getAppliedPatches()) >= 1)
 			{
-				$response = new JsonResponse(new \Exception(\JText::_('COM_PATCHTESTER_ERROR_APPLIED_PATCHES'), 500));
+				$response = new JsonResponse(new \Exception(Text::_('COM_PATCHTESTER_ERROR_APPLIED_PATCHES'), 500));
 
 				$this->getApplication()->sendHeaders();
 				echo json_encode($response);
@@ -115,8 +116,8 @@ class StartfetchController extends AbstractController
 		Factory::getSession()->set('com_patchtester_fetcher_page', 1);
 
 		$response = new JsonResponse(
-			array('complete' => false, 'header' => \JText::_('COM_PATCHTESTER_FETCH_PROCESSING', true)),
-			\JText::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', 1),
+			array('complete' => false, 'header' => Text::_('COM_PATCHTESTER_FETCH_PROCESSING', true)),
+			Text::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', 1),
 			false,
 			true
 		);

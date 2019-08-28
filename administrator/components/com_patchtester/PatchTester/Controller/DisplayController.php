@@ -9,6 +9,7 @@
 namespace PatchTester\Controller;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\Registry\Registry;
 use PatchTester\Model\AbstractModel;
 
@@ -62,13 +63,13 @@ class DisplayController extends AbstractController
 
 			if (!class_exists($viewClass))
 			{
-				throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_VIEW_NOT_FOUND', $view, $format), 500);
+				throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_VIEW_NOT_FOUND', $view, $format), 500);
 			}
 		}
 
 		if (!class_exists($modelClass))
 		{
-			throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_MODEL_NOT_FOUND', $modelClass), 500);
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_MODEL_NOT_FOUND', $modelClass), 500);
 		}
 
 		// Initialize the model class now; need to do it before setting the state to get required data from it

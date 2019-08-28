@@ -9,11 +9,12 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 
 // Access check.
 if (!Factory::getUser()->authorise('core.manage', 'com_patchtester'))
 {
-	throw new RuntimeException(JText::_('JERROR_ALERTNOAUTHOR'), 403);
+	throw new RuntimeException(Text::_('JERROR_ALERTNOAUTHOR'), 403);
 }
 
 // Application reference
@@ -35,7 +36,7 @@ $class = '\\PatchTester\\Controller\\' . ucfirst(strtolower($task)) . 'Controlle
 
 if (!class_exists($class))
 {
-	throw new InvalidArgumentException(JText::sprintf('JLIB_APPLICATION_ERROR_INVALID_CONTROLLER_CLASS', $class), 404);
+	throw new InvalidArgumentException(Text::sprintf('JLIB_APPLICATION_ERROR_INVALID_CONTROLLER_CLASS', $class), 404);
 }
 
 // Instantiate and execute the controller

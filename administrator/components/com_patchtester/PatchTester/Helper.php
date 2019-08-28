@@ -10,6 +10,7 @@ namespace PatchTester;
 
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\Registry\Registry;
 use PatchTester\GitHub\GitHub;
 
@@ -56,7 +57,7 @@ abstract class Helper
 		// Display a message about the lowered API limit without credentials
 		else
 		{
-			Factory::getApplication()->enqueueMessage(\JText::_('COM_PATCHTESTER_NO_CREDENTIALS'), 'notice');
+			Factory::getApplication()->enqueueMessage(Text::_('COM_PATCHTESTER_NO_CREDENTIALS'), 'notice');
 		}
 
 		return new GitHub($options);

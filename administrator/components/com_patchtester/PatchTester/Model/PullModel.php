@@ -9,7 +9,10 @@
 namespace PatchTester\Model;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\Path;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Version;
+use Joomla\Filesystem\File;
 use PatchTester\GitHub\Exception\UnexpectedResponse;
 use PatchTester\Helper;
 
@@ -153,14 +156,14 @@ class PullModel extends AbstractModel
 		}
 		catch (UnexpectedResponse $e)
 		{
-			throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
 		}
 
 		// If over the API limit, we can't build this list
 		if ($rate->resources->core->remaining == 0)
 		{
 			throw new \RuntimeException(
-				\JText::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset))
+				Text::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset))
 			);
 		}
 
@@ -171,12 +174,12 @@ class PullModel extends AbstractModel
 		}
 		catch (UnexpectedResponse $e)
 		{
-			throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
 		}
 
 		if (is_null($pull->head->repo))
 		{
-			throw new \RuntimeException(\JText::_('COM_PATCHTESTER_REPO_IS_GONE'));
+			throw new \RuntimeException(Text::_('COM_PATCHTESTER_REPO_IS_GONE'));
 		}
 
 		try
@@ -186,7 +189,7 @@ class PullModel extends AbstractModel
 		}
 		catch (UnexpectedResponse $e)
 		{
-			throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
 		}
 
 		if (!count($files))
@@ -203,7 +206,7 @@ class PullModel extends AbstractModel
 				case 'deleted':
 					if (!file_exists(JPATH_ROOT . '/' . $file->filename))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_FILE_DELETED_DOES_NOT_EXIST_S', $file->filename));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FILE_DELETED_DOES_NOT_EXIST_S', $file->filename));
 					}
 
 					break;
@@ -214,12 +217,12 @@ class PullModel extends AbstractModel
 					// If the backup file already exists, we can't apply the patch
 					if (file_exists(JPATH_COMPONENT . '/backups/' . md5($file->filename) . '.txt'))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_CONFLICT_S', $file->filename));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_CONFLICT_S', $file->filename));
 					}
 
 					if ($file->action == 'modified' && !file_exists(JPATH_ROOT . '/' . $file->filename))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_FILE_MODIFIED_DOES_NOT_EXIST_S', $file->filename));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FILE_MODIFIED_DOES_NOT_EXIST_S', $file->filename));
 					}
 
 					try
@@ -239,20 +242,17 @@ class PullModel extends AbstractModel
 								break;
 
 							default:
-								throw new \RuntimeException(\JText::_('COM_PATCHTESTER_ERROR_UNSUPPORTED_ENCODING'));
+								throw new \RuntimeException(Text::_('COM_PATCHTESTER_ERROR_UNSUPPORTED_ENCODING'));
 						}
 					}
 					catch (UnexpectedResponse $e)
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
 					}
 
 					break;
 			}
 		}
-
-		jimport('joomla.filesystem.file');
-		jimport('joomla.filesystem.path');
 
 		// At this point, we have ensured that we have all the new files and there are no conflicts
 		foreach ($parsedFiles as $file)
@@ -265,9 +265,9 @@ class PullModel extends AbstractModel
 				$src      = JPATH_ROOT . '/' . $filename;
 				$dest     = JPATH_COMPONENT . '/backups/' . md5($filename) . '.txt';
 
-				if (!\JFile::copy(\JPath::clean($src), $dest))
+				if (!File::copy(Path::clean($src), $dest))
 				{
-					throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest));
+					throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest));
 				}
 			}
 
@@ -275,30 +275,30 @@ class PullModel extends AbstractModel
 			{
 				case 'modified':
 				case 'added':
-					if (!\JFile::write(\JPath::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
+					if (!File::write(Path::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename));
 					}
 
 					break;
 
 				case 'deleted':
-					if (!\JFile::delete(\JPath::clean(JPATH_ROOT . '/' . $file->filename)))
+					if (!File::delete(Path::clean(JPATH_ROOT . '/' . $file->filename)))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->filename));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->filename));
 					}
 
 					break;
 
 				case 'renamed':
-					if (!\JFile::delete(\JPath::clean(JPATH_ROOT . '/' . $file->originalFile)))
+					if (!File::delete(Path::clean(JPATH_ROOT . '/' . $file->originalFile)))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->originalFile));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->originalFile));
 					}
 
-					if (!\JFile::write(\JPath::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
+					if (!File::write(Path::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename));
 					}
 
 					break;
@@ -366,10 +366,8 @@ class PullModel extends AbstractModel
 
 		if (!$files)
 		{
-			throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_READING_DATABASE_TABLE', __METHOD__, htmlentities($testRecord->data)));
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_READING_DATABASE_TABLE', __METHOD__, htmlentities($testRecord->data)));
 		}
-
-		jimport('joomla.filesystem.file');
 
 		foreach ($files as $file)
 		{
@@ -380,17 +378,17 @@ class PullModel extends AbstractModel
 					$src  = JPATH_COMPONENT . '/backups/' . md5($file->filename) . '.txt';
 					$dest = JPATH_ROOT . '/' . $file->filename;
 
-					if (!\JFile::copy($src, $dest))
+					if (!File::copy($src, $dest))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest));
 					}
 
 					if (file_exists($src))
 					{
-						if (!\JFile::delete($src))
+						if (!File::delete($src))
 						{
 							throw new \RuntimeException(
-								\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $src)
+								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $src)
 							);
 						}
 					}
@@ -402,10 +400,10 @@ class PullModel extends AbstractModel
 
 					if (file_exists($src))
 					{
-						if (!\JFile::delete($src))
+						if (!File::delete($src))
 						{
 							throw new \RuntimeException(
-								\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $src)
+								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $src)
 							);
 						}
 					}
@@ -417,27 +415,27 @@ class PullModel extends AbstractModel
 					$newSrc      = JPATH_ROOT . '/' . $file->filename;
 					$dest        = JPATH_ROOT . '/' . $file->originalFile;
 
-					if (!\JFile::copy($originalSrc, $dest))
+					if (!File::copy($originalSrc, $dest))
 					{
-						throw new \RuntimeException(\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $originalSrc, $dest));
+						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $originalSrc, $dest));
 					}
 
 					if (file_exists($originalSrc))
 					{
-						if (!\JFile::delete($originalSrc))
+						if (!File::delete($originalSrc))
 						{
 							throw new \RuntimeException(
-								\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $originalSrc)
+								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $originalSrc)
 							);
 						}
 					}
 
 					if (file_exists($newSrc))
 					{
-						if (!\JFile::delete($newSrc))
+						if (!File::delete($newSrc))
 						{
 							throw new \RuntimeException(
-								\JText::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $newSrc)
+								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $newSrc)
 							);
 						}
 					}

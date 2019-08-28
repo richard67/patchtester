@@ -9,6 +9,8 @@
 namespace PatchTester\Controller;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
 use PatchTester\Model\PullModel;
 
 /**
@@ -36,11 +38,11 @@ class ApplyController extends AbstractController
 
 			if ($model->apply($this->getInput()->getUint('pull_id')))
 			{
-				$msg = \JText::_('COM_PATCHTESTER_APPLY_OK');
+				$msg = Text::_('COM_PATCHTESTER_APPLY_OK');
 			}
 			else
 			{
-				$msg = \JText::_('COM_PATCHTESTER_NO_FILES_TO_PATCH');
+				$msg = Text::_('COM_PATCHTESTER_NO_FILES_TO_PATCH');
 			}
 
 			$type = 'message';
@@ -52,6 +54,6 @@ class ApplyController extends AbstractController
 		}
 
 		$this->getApplication()->enqueueMessage($msg, $type);
-		$this->getApplication()->redirect(\JRoute::_('index.php?option=com_patchtester', false));
+		$this->getApplication()->redirect(Route::_('index.php?option=com_patchtester', false));
 	}
 }

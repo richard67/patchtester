@@ -6,10 +6,12 @@
  * @license    GNU General Public License version 2 or later
  */
 
+use Joomla\CMS\Language\Text;
+
 /** @var  \PatchTester\View\Pulls\PullsHtmlView  $this */
 ?>
-<h3><?php echo \JText::_('COM_PATCHTESTER_REQUIREMENTS_HEADING'); ?></h3>
-<p><?php echo \JText::_('COM_PATCHTESTER_REQUIREMENTS_NOT_MET'); ?></p>
+<h3><?php echo Text::_('COM_PATCHTESTER_REQUIREMENTS_HEADING'); ?></h3>
+<p><?php echo Text::_('COM_PATCHTESTER_REQUIREMENTS_NOT_MET'); ?></p>
 <ul>
 <?php foreach ($this->envErrors as $error) : ?>
 	<li><?php echo $error; ?></li>

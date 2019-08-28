@@ -7,8 +7,10 @@
  */
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Installer\Adapter\ComponentAdapter;
 use Joomla\CMS\Installer\InstallerScript;
+use Joomla\CMS\Language\Text;
 
 /**
  * Installation class to perform additional changes during install/uninstall/update
@@ -88,8 +90,6 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 	 */
 	public function uninstall($parent)
 	{
-		jimport('joomla.filesystem.folder');
-
 		// Initialize the error array
 		$errorTemplates = array();
 
@@ -104,7 +104,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 			if (is_dir($tmplRoot))
 			{
 				// If there's a failure in copying the overrides, log it to the error array
-				if (!JFolder::delete($overrideFolder))
+				if (Folder::delete($overrideFolder))
 				{
 					$errorTemplates[] = ucfirst($template);
 				}
@@ -114,7 +114,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 		// If we couldn't remove any overrides, notify the user
 		if (count($errorTemplates) > 0)
 		{
-			Factory::getApplication()->enqueueMessage(JText::sprintf('COM_PATCHTESTER_COULD_NOT_REMOVE_OVERRIDES', implode(', ', $errorTemplates)));
+			Factory::getApplication()->enqueueMessage(Text::sprintf('COM_PATCHTESTER_COULD_NOT_REMOVE_OVERRIDES', implode(', ', $errorTemplates)));
 		}
 	}
 
@@ -142,8 +142,6 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 	 */
 	private function copyLayouts()
 	{
-		jimport('joomla.filesystem.folder');
-
 		// Initialize the error array
 		$errorTemplates = array();
 
@@ -161,7 +159,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 				// If there's a failure in copying the overrides, log it to the error array
 				try
 				{
-					if (!JFolder::copy($source, $destination, '', true))
+					if (Folder::copy($source, $destination, '', true))
 					{
 						$errorTemplates[] = ucfirst($template);
 					}
@@ -176,7 +174,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 		// If we couldn't remove any overrides, notify the user
 		if (count($errorTemplates) > 0)
 		{
-			Factory::getApplication()->enqueueMessage(JText::sprintf('COM_PATCHTESTER_COULD_NOT_INSTALL_OVERRIDES', implode(', ', $errorTemplates)));
+			Factory::getApplication()->enqueueMessage(Text::sprintf('COM_PATCHTESTER_COULD_NOT_INSTALL_OVERRIDES', implode(', ', $errorTemplates)));
 		}
 	}
 }

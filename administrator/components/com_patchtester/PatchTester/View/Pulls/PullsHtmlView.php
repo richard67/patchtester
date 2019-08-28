@@ -9,8 +9,10 @@
 namespace PatchTester\View\Pulls;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\Registry\Registry;
 use PatchTester\TrackerHelper;
 use PatchTester\View\DefaultHtmlView;
@@ -83,12 +85,12 @@ class PullsHtmlView extends DefaultHtmlView
 	{
 		if (!extension_loaded('openssl'))
 		{
-			$this->envErrors[] = \JText::_('COM_PATCHTESTER_REQUIREMENT_OPENSSL');
+			$this->envErrors[] = Text::_('COM_PATCHTESTER_REQUIREMENT_OPENSSL');
 		}
 
 		if (!in_array('https', stream_get_wrappers()))
 		{
-			$this->envErrors[] = \JText::_('COM_PATCHTESTER_REQUIREMENT_HTTPS');
+			$this->envErrors[] = Text::_('COM_PATCHTESTER_REQUIREMENT_HTTPS');
 		}
 
 		// Only process the data if there are no environment errors
@@ -110,12 +112,12 @@ class PullsHtmlView extends DefaultHtmlView
 		$this->addToolbar();
 
 		// Make text strings available in the JavaScript API
-		\JText::script('COM_PATCHTESTER_CONFIRM_RESET');
+		Text::script('COM_PATCHTESTER_CONFIRM_RESET');
 
 		// Set a warning on 4.0 branch
 		if (version_compare(JVERSION, '4.0', 'ge'))
 		{
-			Factory::getApplication()->enqueueMessage(\JText::_('COM_PATCHTESTER_40_WARNING'), 'warning');
+			Factory::getApplication()->enqueueMessage(Text::_('COM_PATCHTESTER_40_WARNING'), 'warning');
 		}
 
 		return parent::render();
@@ -130,7 +132,7 @@ class PullsHtmlView extends DefaultHtmlView
 	 */
 	protected function addToolbar()
 	{
-		\JToolbarHelper::title(\JText::_('COM_PATCHTESTER'), 'patchtester icon-apply');
+		ToolbarHelper::title(Text::_('COM_PATCHTESTER'), 'patchtester icon-apply');
 
 		if (!count($this->envErrors))
 		{
@@ -153,7 +155,7 @@ class PullsHtmlView extends DefaultHtmlView
 			$toolbar->appendButton('Standard', 'expired', 'COM_PATCHTESTER_TOOLBAR_RESET', 'reset', false);
 		}
 
-		\JToolbarHelper::preferences('com_patchtester');
+		ToolbarHelper::preferences('com_patchtester');
 	}
 
 	/**
@@ -166,17 +168,17 @@ class PullsHtmlView extends DefaultHtmlView
 	protected function getLimitOptions()
 	{
 		return array(
-			5   => \JText::_('J5'),
-			10  => \JText::_('J10'),
-			15  => \JText::_('J15'),
-			20  => \JText::_('J20'),
-			25  => \JText::_('J25'),
-			30  => \JText::_('J30'),
-			50  => \JText::_('J50'),
-			100 => \JText::_('J100'),
-			200 => \JText::_('J200'),
-			500 => \JText::_('J500'),
-			0   => \JText::_('JALL'),
+			5   => Text::_('J5'),
+			10  => Text::_('J10'),
+			15  => Text::_('J15'),
+			20  => Text::_('J20'),
+			25  => Text::_('J25'),
+			30  => Text::_('J30'),
+			50  => Text::_('J50'),
+			100 => Text::_('J100'),
+			200 => Text::_('J200'),
+			500 => Text::_('J500'),
+			0   => Text::_('JALL'),
 		);
 	}
 
@@ -190,10 +192,10 @@ class PullsHtmlView extends DefaultHtmlView
 	protected function getSortFields()
 	{
 		return array(
-			'a.title ASC'    => \JText::_('JGLOBAL_TITLE_ASC'),
-			'a.title DESC'   => \JText::_('JGLOBAL_TITLE_DESC'),
-			'a.pull_id ASC'  => \JText::_('COM_PATCHTESTER_PULL_ID_ASC'),
-			'a.pull_id DESC' => \JText::_('COM_PATCHTESTER_PULL_ID_DESC'),
+			'a.title ASC'    => Text::_('JGLOBAL_TITLE_ASC'),
+			'a.title DESC'   => Text::_('JGLOBAL_TITLE_DESC'),
+			'a.pull_id ASC'  => Text::_('COM_PATCHTESTER_PULL_ID_ASC'),
+			'a.pull_id DESC' => Text::_('COM_PATCHTESTER_PULL_ID_DESC'),
 		);
 	}
 }
