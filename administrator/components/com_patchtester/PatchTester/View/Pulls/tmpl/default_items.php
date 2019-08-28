@@ -27,10 +27,10 @@ foreach ($this->items as $i => $item) :
 			</div>
 		<?php endif; ?>
 	</td>
-	<td class="center">
+	<td class="center hidden-phone">
 		<?php echo $this->escape($item->branch); ?>
 	</td>
-	<td class="center">
+	<td class="center hidden-phone">
 		<?php if ($item->is_rtc) : ?>
 			<span class="label label-success"><?php echo \JText::_('JYES'); ?></span>
 		<?php else : ?>

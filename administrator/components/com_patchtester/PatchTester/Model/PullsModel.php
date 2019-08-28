@@ -34,7 +34,7 @@ class PullsModel extends \JModelDatabase
 	 * @var    array
 	 * @since  2.0
 	 */
-	protected $sortFields = array('a.pull_id', 'a.title', 'applied');
+	protected $sortFields = array('a.pull_id', 'a.title');
 
 	/**
 	 * Instantiate the model.
@@ -169,18 +169,12 @@ class PullsModel extends \JModelDatabase
 		}
 
 		// Handle the list ordering.
-		$ordering  = $this->getState()->get('list.ordering');
-		$direction = $this->getState()->get('list.direction');
+		$ordering  = $this->getState()->get('list.ordering', 'a.pull_id');
+		$direction = $this->getState()->get('list.direction', 'DESC');
 
 		if (!empty($ordering))
 		{
 			$query->order($db->escape($ordering) . ' ' . $db->escape($direction));
-		}
-
-		// If $ordering is by applied patches, then append sort on pull_id also
-		if ($ordering === 'applied')
-		{
-			$query->order('a.pull_id ' . $db->escape($direction));
 		}
 
 		return $query;

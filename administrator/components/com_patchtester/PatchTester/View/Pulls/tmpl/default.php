@@ -11,15 +11,13 @@
 \JHtml::_('behavior.core');
 \JHtml::_('bootstrap.tooltip');
 \JHtml::_('formbehavior.chosen', 'select');
-\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => 'auto', 'relative' => true));
+\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => '3.5.0', 'relative' => true));
 \JHtml::_('script', 'com_patchtester/patchtester.js', array('version' => 'auto', 'relative' => true));
 
-$listOrder     = $this->escape($this->state->get('list.ordering'));
-$listDirn      = $this->escape($this->state->get('list.direction'));
+$listOrder     = $this->escape($this->state->get('list.fullordering', 'a.pull_id DESC'));
 $filterApplied = $this->escape($this->state->get('filter.applied'));
 $filterBranch  = $this->escape($this->state->get('filter.branch'));
 $filterRtc     = $this->escape($this->state->get('filter.rtc'));
-$colSpan       = $this->trackerAlias !== false ? 8 : 7;
 ?>
 <form action="<?php echo \JRoute::_('index.php?option=com_patchtester&view=pulls'); ?>" method="post" name="adminForm" id="adminForm" data-order="<?php echo $listOrder; ?>">
 	<div id="j-main-container">
@@ -36,17 +34,9 @@ $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 				<label for="limit" class="element-invisible"><?php echo \JText::_('JFIELD_PLG_SEARCH_SEARCHLIMIT_DESC'); ?></label>
 				<?php echo $this->pagination->getLimitBox(); ?>
 			</div>
-			<div class="btn-group pull-right hidden-phone">
-				<label for="directionTable" class="element-invisible"><?php echo \JText::_('JFIELD_ORDERING_DESC'); ?></label>
-				<select name="directionTable" id="directionTable" class="input-medium" onchange="PatchTester.orderTable()">
-					<option value=""><?php echo \JText::_('JFIELD_ORDERING_DESC');?></option>
-					<option value="asc"<?php if ($listDirn == 'asc') echo ' selected="selected"'; ?>><?php echo \JText::_('JGLOBAL_ORDER_ASCENDING'); ?></option>
-					<option value="desc"<?php if ($listDirn == 'desc') echo ' selected="selected"'; ?>><?php echo \JText::_('JGLOBAL_ORDER_DESCENDING'); ?></option>
-				</select>
-			</div>
 			<div class="btn-group pull-right">
-				<label for="sortTable" class="element-invisible"><?php echo \JText::_('JGLOBAL_SORT_BY'); ?></label>
-				<select name="sortTable" id="sortTable" class="input-medium" onchange="PatchTester.orderTable()">
+				<label for="list_fullordering" class="element-invisible"><?php echo \JText::_('JGLOBAL_SORT_BY'); ?></label>
+				<select name="list_fullordering" id="list_fullordering" class="input-medium" onchange="this.form.submit();">
 					<option value=""><?php echo \JText::_('JGLOBAL_SORT_BY'); ?></option>
 					<?php echo \JHtml::_('select.options', $this->getSortFields(), 'value', 'text', $listOrder);?>
 				</select>
@@ -90,10 +80,10 @@ $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 						<th class="nowrap">
 							<?php echo \JText::_('JGLOBAL_TITLE'); ?>
 						</th>
-						<th width="8%" class="nowrap center">
+						<th width="8%" class="nowrap center hidden-phone">
 							<?php echo \JText::_('COM_PATCHTESTER_BRANCH'); ?>
 						</th>
-						<th width="8%" class="nowrap center">
+						<th width="8%" class="nowrap center hidden-phone">
 							<?php echo \JText::_('COM_PATCHTESTER_READY_TO_COMMIT'); ?>
 						</th>
 						<th width="8%" class="nowrap center">
@@ -123,8 +113,6 @@ $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 		<input type="hidden" name="task" value="" />
 		<input type="hidden" name="boxchecked" value="0" />
 		<input type="hidden" name="pull_id" id="pull_id" value="" />
-		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
 		<?php echo \JHtml::_('form.token'); ?>
 	</div>
 </form>

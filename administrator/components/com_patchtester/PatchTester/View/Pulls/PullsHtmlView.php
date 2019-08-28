@@ -157,18 +157,43 @@ class PullsHtmlView extends DefaultHtmlView
 	}
 
 	/**
+	 * Returns an array of values to be used for pagination limits
+	 *
+	 * @return  array
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	protected function getLimitOptions()
+	{
+		return array(
+			5   => \JText::_('J5'),
+			10  => \JText::_('J10'),
+			15  => \JText::_('J15'),
+			20  => \JText::_('J20'),
+			25  => \JText::_('J25'),
+			30  => \JText::_('J30'),
+			50  => \JText::_('J50'),
+			100 => \JText::_('J100'),
+			200 => \JText::_('J200'),
+			500 => \JText::_('J500'),
+			0   => \JText::_('JALL'),
+		);
+	}
+
+	/**
 	 * Returns an array of fields the table can be sorted by
 	 *
-	 * @return  array  Array containing the field name to sort by as the key and display text as value
+	 * @return  array
 	 *
 	 * @since   2.0
 	 */
 	protected function getSortFields()
 	{
 		return array(
-			'a.title'   => \JText::_('JGLOBAL_TITLE'),
-			'a.pull_id' => \JText::_('COM_PATCHTESTER_PULL_ID'),
-			'applied'   => \JText::_('JSTATUS')
+			'a.title ASC'    => \JText::_('JGLOBAL_TITLE_ASC'),
+			'a.title DESC'   => \JText::_('JGLOBAL_TITLE_DESC'),
+			'a.pull_id ASC'  => \JText::_('COM_PATCHTESTER_PULL_ID_ASC'),
+			'a.pull_id DESC' => \JText::_('COM_PATCHTESTER_PULL_ID_DESC'),
 		);
 	}
 }

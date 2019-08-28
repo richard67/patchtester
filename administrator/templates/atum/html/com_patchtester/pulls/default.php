@@ -15,73 +15,75 @@ $searchToolsOptions = array(
 	'searchFieldSelector' => '#filter_search',
 	'selectorFieldName'   => 'client_id',
 	'showSelector'        => false,
-	'orderFieldSelector'  => '#sortTable',
+	'orderFieldSelector'  => '#list_fullordering',
 	'showNoResults'       => false,
 	'noResultsText'       => '',
 	'formSelector'        => '#adminForm',
 );
 
 \JHtml::_('behavior.core');
-\JHtml::_('bootstrap.tooltip');
 \JHtml::_('searchtools.form', '#adminForm', $searchToolsOptions);
-\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => 'auto', 'relative' => true));
+\JHtml::_('stylesheet', 'com_patchtester/octicons.css', array('version' => '3.5.0', 'relative' => true));
 \JHtml::_('script', 'com_patchtester/patchtester.js', array('version' => 'auto', 'relative' => true));
 
-$listOrder     = $this->escape($this->state->get('list.ordering'));
-$listDirn      = $this->escape($this->state->get('list.direction', 'desc'));
+$listOrder     = $this->escape($this->state->get('list.fullordering', 'a.pull_id DESC'));
+$listLimit     = (int) ($this->state->get('list.limit'));
 $filterApplied = $this->escape($this->state->get('filter.applied'));
 $filterBranch  = $this->escape($this->state->get('filter.branch'));
 $filterRtc     = $this->escape($this->state->get('filter.rtc'));
-$colSpan       = $this->trackerAlias !== false ? 8 : 7;
 ?>
-<form action="<?php echo \JRoute::_('index.php?option=com_patchtester&view=pulls'); ?>" method="post" name="adminForm" id="adminForm" data-order="<?php echo $listOrder; ?>">
+<form action="<?php echo \JRoute::_('index.php?option=com_patchtester&view=pulls'); ?>" method="post" name="adminForm" id="adminForm">
 	<div class="row">
 		<div class="col-md-12">
 			<div id="j-main-container" class="j-main-container">
 				<div class="js-stools" role="search">
 					<div class="js-stools-container-bar">
-						<label for="filter_search" class="sr-only">
-							<?php echo \JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'); ?>
-						</label>
 						<div class="btn-toolbar">
 							<div class="btn-group mr-2">
 								<div class="input-group">
-									<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" class="form-control" title="<?php echo \JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'); ?>" placeholder="<?php echo \JText::_('JSEARCH_FILTER'); ?>">
+									<label for="filter_search" class="sr-only">
+										<?php echo \JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'); ?>
+									</label>
+									<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" class="form-control" placeholder="<?php echo \JText::_('JSEARCH_FILTER'); ?>">
+									<div role="tooltip" id="filter_search-desc">
+										<?php echo $this->escape(\JText::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION')); ?>
+									</div>
 									<span class="input-group-append">
-										<button type="submit" class="btn btn-primary hasTooltip" title="<?php echo \JHtml::_('tooltipText', 'JSEARCH_FILTER_SUBMIT'); ?>" aria-label="<?php echo \JText::_('JSEARCH_FILTER_SUBMIT'); ?>">
+										<button type="submit" class="btn btn-primary" aria-label="<?php echo \JText::_('JSEARCH_FILTER_SUBMIT'); ?>">
 											<span class="fa fa-search" aria-hidden="true"></span>
 										</button>
 									</span>
 								</div>
 							</div>
-							<button type="button" class="btn btn-primary hasTooltip js-stools-btn-clear mr-2" title="<?php echo \JHtml::_('tooltipText', 'JSEARCH_FILTER_CLEAR'); ?>">
-								<?php echo \JText::_('JSEARCH_FILTER_CLEAR'); ?>
-							</button>
 							<div class="btn-group">
 								<button type="button" class="btn btn-primary hasTooltip js-stools-btn-filter">
 									<?php echo \JText::_('JFILTER_OPTIONS'); ?>
-									<span class="fa fa-caret-down" aria-hidden="true"></span>
+									<span class="fa fa-angle-down" aria-hidden="true"></span>
 								</button>
+								<button type="button" class="btn btn-primary js-stools-btn-clear mr-2">
+									<?php echo \JText::_('JSEARCH_FILTER_CLEAR'); ?>
+								</button>
+							</div>
+							<div class="ordering-select">
+								<div class="js-stools-field-list">
+									<select name="list_fullordering" id="list_fullordering" class="custom-select" onchange="this.form.submit()">
+										<option value=""><?php echo \JText::_('JGLOBAL_SORT_BY'); ?></option>
+										<?php echo \JHtml::_('select.options', $this->getSortFields(), 'value', 'text', $listOrder); ?>
+									</select>
+								</div>
+								<div class="js-stools-field-list">
+									<span class="sr-only">
+										<label id="list_limit-lbl" for="list_limit">Select number of items per page.</label>
+									</span>
+									<select name="list_limit" id="list_limit" class="custom-select" onchange="this.form.submit()">
+										<?php echo \JHtml::_('select.options', $this->getLimitOptions(), 'value', 'text', $listLimit); ?>
+									</select>
+								</div>
 							</div>
 						</div>
 					</div>
 					<!-- Filters div -->
 					<div class="js-stools-container-filters clearfix">
-						<div class="ordering-select">
-							<div class="js-stools-field-list">
-								<select name="sortTable" id="sortTable" class="custom-select" onchange="PatchTester.orderTable()">
-									<option value=""><?php echo \JText::_('JGLOBAL_SORT_BY'); ?></option>
-									<?php echo \JHtml::_('select.options', $this->getSortFields(), 'value', 'text', $listOrder); ?>
-								</select>
-							</div>
-							<div class="js-stools-field-list">
-								<select name="directionTable" id="directionTable" class="custom-select" onchange="PatchTester.orderTable()">
-									<option value=""><?php echo \JText::_('JFIELD_ORDERING_DESC');?></option>
-									<option value="asc"<?php if (strtolower($listDirn) === 'asc') echo ' selected="selected"'; ?>><?php echo \JText::_('JGLOBAL_ORDER_ASCENDING'); ?></option>
-									<option value="desc"<?php if (strtolower($listDirn) === 'desc') echo ' selected="selected"'; ?>><?php echo \JText::_('JGLOBAL_ORDER_DESCENDING'); ?></option>
-								</select>
-							</div>
-						</div>
 						<div class="js-stools-field-filter">
 							<select name="filter_applied" class="custom-select" onchange="this.form.submit();">
 								<option value=""><?php echo \JText::_('COM_PATCHTESTER_FILTER_APPLIED_PATCHES'); ?></option>
@@ -106,37 +108,33 @@ $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 				</div>
 				<div id="j-main-container" class="j-main-container">
 					<?php if (empty($this->items)) : ?>
-						<div class="alert alert-warning alert-no-items">
+						<div class="alert alert-info">
+							<span class="fa fa-info-circle" aria-hidden="true"></span><span class="sr-only"><?php echo \JText::_('INFO'); ?></span>
 							<?php echo \JText::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
 						</div>
 					<?php else : ?>
 						<table class="table">
+							<caption id="captionTable" class="sr-only">
+								<?php echo \JText::_('COM_PATCHTESTER_PULLS_TABLE_CAPTION'); ?>, <?php echo \JText::_('JGLOBAL_SORTED_BY'); ?>
+							</caption>
 							<thead>
 								<tr>
-									<th width="5%" class="nowrap text-center">
+									<th scope="col" style="width:5%" class="text-center">
 										<?php echo \JText::_('COM_PATCHTESTER_PULL_ID'); ?>
 									</th>
-									<th class="nowrap">
+									<th scope="col" style="min-width:100px">
 										<?php echo \JText::_('JGLOBAL_TITLE'); ?>
 									</th>
-									<th width="8%" class="nowrap text-center">
+									<th scope="col" style="width:8%" class="d-none d-md-table-cell text-center">
 										<?php echo \JText::_('COM_PATCHTESTER_BRANCH'); ?>
 									</th>
-									<th width="8%" class="nowrap text-center">
+									<th scope="col" style="width:8%" class="d-none d-md-table-cell text-center">
 										<?php echo \JText::_('COM_PATCHTESTER_READY_TO_COMMIT'); ?>
 									</th>
-									<th width="8%" class="nowrap text-center">
-										<?php echo \JText::_('COM_PATCHTESTER_GITHUB'); ?>
-									</th>
-									<?php if ($this->trackerAlias !== false) : ?>
-										<th width="8%" class="nowrap text-center">
-											<?php echo \JText::_('COM_PATCHTESTER_JISSUES'); ?>
-										</th>
-									<?php endif; ?>
-									<th width="10%" class="nowrap text-center">
+									<th scope="col" style="width:10%" class="text-center">
 										<?php echo \JText::_('JSTATUS'); ?>
 									</th>
-									<th width="15%" class="nowrap text-center">
+									<th scope="col" style="width:15%" class="text-center">
 										<?php echo \JText::_('COM_PATCHTESTER_TEST_THIS_PATCH'); ?>
 									</th>
 								</tr>
@@ -152,8 +150,6 @@ $colSpan       = $this->trackerAlias !== false ? 8 : 7;
 					<input type="hidden" name="task" value="" />
 					<input type="hidden" name="boxchecked" value="0" />
 					<input type="hidden" name="pull_id" id="pull_id" value="" />
-					<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-					<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
 					<?php echo \JHtml::_('form.token'); ?>
 				</div>
 			</div>

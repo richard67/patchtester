@@ -64,8 +64,14 @@ if (typeof Joomla === 'undefined') {
                             if (progress < 100) {
                                 progressBar.css('width', progress + '%').attr('aria-valuenow', progress);
                             } else {
-                                progressBar.removeClass('bar-success').addClass('bar-warning').attr('aria-valuemin', 100).attr('aria-valuemax', 200);
-                                progressBar.css('width', progress + '%').attr('aria-valuenow', progress);
+                                // Both BS2 and BS4 classes are targeted to keep this script simple
+                                progressBar
+                                    .removeClass('bar-success bg-success')
+                                    .addClass('bar-warning bg-warning')
+                                    .css('width', progress + '%')
+                                    .attr('aria-valuemin', 100)
+                                    .attr('aria-valuemax', 200)
+                                    .attr('aria-valuenow', progress);
                             }
                         }
 

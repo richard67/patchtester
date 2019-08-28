@@ -14,24 +14,6 @@ if (typeof Joomla === 'undefined') {
 
     window.PatchTester = {
         /**
-         * Re-order the pull request list table
-         */
-        orderTable: function () {
-            var table = document.getElementById('sortTable'),
-                direction = document.getElementById('directionTable'),
-                order = table.options[table.selectedIndex].value,
-                currentOrder = document.getElementById('adminForm').getAttribute('data-order').valueOf();
-
-            if (order != currentOrder) {
-                var dirn = 'asc';
-            } else {
-                var dirn = direction.options[direction.selectedIndex].value;
-            }
-
-            Joomla.tableOrdering(order, dirn, '');
-        },
-
-        /**
          * Process the patch action
          *
          * @param {String} task The task to perform

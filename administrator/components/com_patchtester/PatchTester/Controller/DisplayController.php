@@ -19,20 +19,12 @@ use Joomla\Registry\Registry;
 class DisplayController extends AbstractController
 {
 	/**
-	 * Default ordering column
+	 * Default ordering value
 	 *
 	 * @var    string
-	 * @since  2.0
+	 * @since  __DEPLOY_VERSION__
 	 */
-	protected $defaultOrderColumn = 'a.pull_id';
-
-	/**
-	 * Default sort direction
-	 *
-	 * @var    string
-	 * @since  2.0
-	 */
-	protected $defaultDirection = 'DESC';
+	protected $defaultFullOrdering = 'a.pull_id DESC';
 
 	/**
 	 * Execute the controller.
@@ -117,27 +109,34 @@ class DisplayController extends AbstractController
 		$limit = $this->getApplication()->getUserStateFromRequest('global.list.limit', 'limit', $this->getApplication()->get('list_limit', 20), 'uint');
 		$state->set('list.limit', $limit);
 
-		// Check if the ordering field is in the white list, otherwise use the incoming value.
-		$value = $this->getApplication()->getUserStateFromRequest($this->context . '.ordercol', 'filter_order', $this->defaultOrderColumn);
+		$fullOrdering = $this->getApplication()->getUserStateFromRequest($this->context . '.fullorder', 'list_fullordering', $this->defaultFullOrdering);
 
-		if (!in_array($value, $model->getSortFields()))
+		$orderingParts = explode(' ', $fullOrdering);
+
+		if (count($orderingParts) !== 2)
 		{
-			$value = $this->defaultOrderColumn;
-			$this->getApplication()->setUserState($this->context . '.ordercol', $value);
+			$fullOrdering = $this->defaultFullOrdering;
+
+			$orderingParts = explode(' ', $fullOrdering);
 		}
 
-		$state->set('list.ordering', $value);
+		$state->set('list.fullordering', $fullOrdering);
 
-		// Check if the ordering direction is valid, otherwise use the incoming value.
-		$value = $this->getApplication()->getUserStateFromRequest($this->context . '.orderdirn', 'filter_order_Dir', $this->defaultDirection);
+		// The 2nd part will be considered the direction
+		$direction = $orderingParts[array_key_last($orderingParts)];
 
-		if (!in_array(strtoupper($value), array('ASC', 'DESC', '')))
+		if (in_array(strtoupper($direction), array('ASC', 'DESC', '')))
 		{
-			$value = $this->defaultDirection;
-			$this->getApplication()->setUserState($this->context . '.orderdirn', $value);
+			$state->set('list.direction', $direction);
 		}
 
-		$state->set('list.direction', $value);
+		// The 1st part will be the ordering
+		$ordering = $orderingParts[array_key_first($orderingParts)];
+
+		if (in_array($ordering, $model->getSortFields()))
+		{
+			$state->set('list.ordering', $ordering);
+		}
 
 		$value = $this->getApplication()->getUserStateFromRequest($this->context . '.limitstart', 'limitstart', 0);
 		$limitstart = ($limit != 0 ? (floor($value / $limit) * $limit) : 0);
