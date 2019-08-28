@@ -18,7 +18,7 @@ use PatchTester\Helper;
  *
  * @since  2.0
  */
-class PullModel extends \JModelDatabase
+class PullModel extends AbstractModel
 {
 	/**
 	 * Array containing top level non-production folders

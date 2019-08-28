@@ -13,7 +13,7 @@ namespace PatchTester\Model;
  *
  * @since  2.0
  */
-class TestsModel extends \JModelDatabase
+class TestsModel extends AbstractModel
 {
 	/**
 	 * Retrieves a list of applied patches

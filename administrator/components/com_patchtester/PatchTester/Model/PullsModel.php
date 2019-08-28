@@ -18,7 +18,7 @@ use PatchTester\Helper;
  *
  * @since  2.0
  */
-class PullsModel extends \JModelDatabase
+class PullsModel extends AbstractModel
 {
 	/**
 	 * The object context
