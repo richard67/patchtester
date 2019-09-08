@@ -62,4 +62,31 @@ abstract class Helper
 
 		return new GitHub($options);
 	}
+
+	/**
+	 * Initializes the CI Settings
+	 *
+	 * @return  Registry
+	 *
+	 * @since   3.0
+	 */
+	public static function initializeCISettings()
+	{
+		$options = new Registry;
+
+		// Set CI server address for the request
+		$options->set('server.url', 'https://stuff.gramma.name');
+
+		// Set name of the zip archive
+		$options->set('zip.name', 'build.zip');
+
+		// Set temp archive for extracting and downloading files
+		$options->set('folder.temp', JPATH_COMPONENT . '/temp');
+		$options->set('folder.backups', JPATH_COMPONENT . '/backups');
+
+		// Set full url for addressing the file
+		$options->set('zip.url', $options->get('server.url') . '/%s/' . $options->get('zip.name'));
+
+		return $options;
+	}
 }

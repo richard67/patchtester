@@ -8,6 +8,7 @@
 
 namespace PatchTester\Model;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Language\Text;
@@ -136,15 +137,212 @@ class PullModel extends AbstractModel
 
 	/**
 	 * Patches the code with the supplied pull request
+	 * However uses different destinations for different repositories.
 	 *
 	 * @param   integer  $id  ID of the pull request to apply
 	 *
 	 * @return  boolean
 	 *
 	 * @since   2.0
+	 *
 	 * @throws  \RuntimeException
 	 */
 	public function apply($id)
+	{
+		$params = ComponentHelper::getParams('com_patchtester');
+
+		// Decide based on repository settings whether patch will be applied through Github or CIServer
+		if ($params->get('repo', 'joomla-cms') === 'joomla-cms'
+			&& $params->get('org', 'joomla') === 'joomla')
+		{
+			return $this->applyWithCIServer($id);
+		}
+		else
+		{
+			return $this->applyWithGitHub($id);
+		}
+	}
+
+	/**
+	 * Patches the code with the supplied pull request
+	 *
+	 * @param   integer  $id  ID of the pull request to apply
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 *
+	 * @throws  \RuntimeException
+	 */
+	public function applyWithCIServer($id)
+	{
+		// Get the CIServer Registry
+		$ciSettings = Helper::initializeCISettings();
+
+		$tempPath = $ciSettings->get('folder.temp') . "/$id";
+		$backupsPath = $ciSettings->get('folder.backups') . "/$id";
+		$zipPath = $tempPath . '/' . $ciSettings->get('zip.name');
+		$serverPath = sprintf($ciSettings->get('zip.url'), $id);
+
+		// Check if zip folder exists on server
+		$serverHeaders = @get_headers($serverPath);
+
+		if (!$serverHeaders || $serverHeaders[0] != 'HTTP/1.1 200 OK')
+		{
+			throw new \RuntimeException(Text::_('File does not exist on Server'));
+		}
+
+		mkdir($tempPath);
+		file_put_contents($zipPath, fopen($serverPath, "r"));
+
+		// Check if zip folder could have been downloaded
+		if (!file_exists($zipPath))
+		{
+			$this->rmDir($tempPath);
+			throw new \RuntimeException(Text::_('Zip has not been created'));
+		}
+
+		$zip = new \ZipArchive;
+		$res = $zip->open($zipPath);
+
+		// Check if zip contains files
+		if ($zip->numFiles === 0)
+		{
+			$zip->close();
+			$this->rmDir($tempPath);
+			throw new \RuntimeException(Text::_('Zip is empty'));
+		}
+
+		$zip->extractTo($tempPath);
+		$zip->close();
+
+		unlink($zipPath);
+		$files = $this->getListOfFiles($tempPath);
+
+		mkdir($backupsPath);
+
+		foreach ($files as $file)
+		{
+			if (file_exists(JPATH_ROOT . "/$file"))
+			{
+				copy(JPATH_ROOT . "/$file", "$backupsPath/$file");
+			}
+
+			copy("$tempPath/$file", JPATH_ROOT . "/$file");
+		}
+
+		$this->rmDir($tempPath);
+
+		// ToDo refactor with githubCode to avoid duplicate code
+
+		$record = (object) array(
+			'pull_id'         => $id,
+			'data'            => json_encode($files),
+			'patched_by'      => Factory::getUser()->id,
+			'applied'         => 1,
+			'applied_version' => JVERSION,
+		);
+
+		$db = $this->getDb();
+
+		$db->insertObject('#__patchtester_tests', $record);
+
+		// Change the media version
+		$version = new Version;
+		$version->refreshMediaVersion();
+
+		return true;
+	}
+
+	/**
+	 * Returns an array containing fileNames as string for a given $dir
+	 *
+	 * @param   string  $dir    directory to scan
+	 * @param	array	$files	array with fileNames
+	 * @param	string	$parent parent directory
+	 *
+	 * @return  array	fileNames
+	 *
+	 * @since   3.0
+	 */
+	private function getListOfFiles($dir, $files = [], $parent = null)
+	{
+		if (is_dir($dir))
+		{
+			// Remove dot files/folders
+			$temp = preg_grep("/^([^.])/", scandir($dir));
+
+			foreach ($temp as $key => $file)
+			{
+				if (is_dir($dir . '/' . $file))
+				{
+					unset($temp[$key]);
+					$temp = $this->getListOfFiles($dir . '/' . $file, $temp, (is_null($parent) ? $file : $parent . '/' . $file));
+				}
+
+				if (!is_null($parent))
+				{
+					$temp[$file] = $parent . '/' . $file;
+				}
+			}
+
+			$files = array_merge($files, $temp);
+
+			return $files;
+		}
+		else
+		{
+			return [];
+		}
+	}
+
+	/**
+	 * Removes directory and its content recursively
+	 *
+	 * @param   string  $dir    directory to delete
+	 *
+	 * @return  void
+	 *
+	 * @since   3.0
+	 */
+	private function rmDir($dir)
+	{
+		if (is_dir($dir))
+		{
+			$files = scandir($dir);
+
+			foreach ($files as $file)
+			{
+				if ($file != "." && $file != "..")
+				{
+					if (is_dir($dir . "/" . $file))
+					{
+						$this->rmDir($dir . "/" . $file);
+					}
+					else
+					{
+						unlink($dir . "/" . $file);
+					}
+				}
+			}
+
+			rmdir($dir);
+		}
+	}
+
+
+	/**
+	 * Patches the code with the supplied pull request
+	 *
+	 * @param   integer  $id  ID of the pull request to apply
+	 *
+	 * @return  boolean
+	 *
+	 * @since   2.0
+	 *
+	 * @throws  \RuntimeException
+	 */
+	public function applyWithGitHub($id)
 	{
 		// Get the Github object
 		$github = Helper::initializeGithub();
