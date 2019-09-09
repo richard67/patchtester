@@ -143,7 +143,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @return  boolean
 	 *
-	 * @since   2.0
+	 * @since   3.0
 	 *
 	 * @throws  \RuntimeException
 	 */
@@ -190,6 +190,12 @@ class PullModel extends AbstractModel
 		$zipPath     = $tempPath . '/' . $ciSettings->get('zip.name');
 		$serverPath  = sprintf($ciSettings->get('zip.url'), $id);
 
+		// Patch has already been applied
+		if (file_exists($backupsPath))
+		{
+			return false;
+		}
+
 		// Check if zip folder exists on server
 		$serverHeaders = @get_headers($serverPath);
 
@@ -228,10 +234,6 @@ class PullModel extends AbstractModel
 
 		// ToDo add deleted files to fileList
 
-		if (file_exists($backupsPath))
-		{
-			$this->rmDir($backupsPath);
-		}
 		mkdir($backupsPath);
 
 		// Moves existent files to backup and replace them or creates new one if they don't exist
