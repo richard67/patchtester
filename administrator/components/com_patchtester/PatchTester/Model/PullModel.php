@@ -137,7 +137,7 @@ class PullModel extends AbstractModel
 
 	/**
 	 * Patches the code with the supplied pull request
-	 * However uses different destinations for different repositories.
+	 * However uses different methods for different repositories.
 	 *
 	 * @param   integer  $id  ID of the pull request to apply
 	 *
@@ -179,10 +179,16 @@ class PullModel extends AbstractModel
 		// Get the CIServer Registry
 		$ciSettings = Helper::initializeCISettings();
 
-		$tempPath = $ciSettings->get('folder.temp') . "/$id";
+		// Create tmp folder if it does not exist
+		if (!file_exists($ciSettings->get('folder.temp')))
+		{
+			mkdir($ciSettings->get('folder.temp'));
+		}
+
+		$tempPath    = $ciSettings->get('folder.temp') . "/$id";
 		$backupsPath = $ciSettings->get('folder.backups') . "/$id";
-		$zipPath = $tempPath . '/' . $ciSettings->get('zip.name');
-		$serverPath = sprintf($ciSettings->get('zip.url'), $id);
+		$zipPath     = $tempPath . '/' . $ciSettings->get('zip.name');
+		$serverPath  = sprintf($ciSettings->get('zip.url'), $id);
 
 		// Check if zip folder exists on server
 		$serverHeaders = @get_headers($serverPath);
@@ -203,7 +209,7 @@ class PullModel extends AbstractModel
 		}
 
 		$zip = new \ZipArchive;
-		$res = $zip->open($zipPath);
+		$zip->open($zipPath);
 
 		// Check if zip contains files
 		if ($zip->numFiles === 0)
@@ -215,37 +221,49 @@ class PullModel extends AbstractModel
 
 		$zip->extractTo($tempPath);
 		$zip->close();
-
 		unlink($zipPath);
+
+		// Get a list of files from folder and deleted.log
 		$files = $this->getListOfFiles($tempPath);
 
+		// ToDo add deleted files to fileList
+
+		if (file_exists($backupsPath))
+		{
+			$this->rmDir($backupsPath);
+		}
 		mkdir($backupsPath);
 
+		// Moves existent files to backup and replace them or creates new one if they don't exist
 		foreach ($files as $file)
 		{
+			$filePath = explode("/", $file);
+			array_pop($filePath);
+			$filePath = implode("/", $filePath);
+
 			if (file_exists(JPATH_ROOT . "/$file"))
 			{
-				copy(JPATH_ROOT . "/$file", "$backupsPath/$file");
+				// Create directories if they don't exist until file
+				if (!file_exists("$backupsPath/$filePath"))
+				{
+					mkdir("$backupsPath/$filePath",null, true);
+				}
+
+				rename(JPATH_ROOT . "/$file", "$backupsPath/$file");
+			}
+			// Create directories if they don't exist until file
+			if (!file_exists(JPATH_ROOT . "/$filePath"))
+			{
+				mkdir(JPATH_ROOT . "/$filePath",null, true);
 			}
 
 			copy("$tempPath/$file", JPATH_ROOT . "/$file");
 		}
 
+		// Clear temp folder and store applied patch in database
 		$this->rmDir($tempPath);
 
-		// ToDo refactor with githubCode to avoid duplicate code
-
-		$record = (object) array(
-			'pull_id'         => $id,
-			'data'            => json_encode($files),
-			'patched_by'      => Factory::getUser()->id,
-			'applied'         => 1,
-			'applied_version' => JVERSION,
-		);
-
-		$db = $this->getDb();
-
-		$db->insertObject('#__patchtester_tests', $record);
+		$this->saveAppliedPatch($id, $files);
 
 		// Change the media version
 		$version = new Version;
@@ -257,11 +275,11 @@ class PullModel extends AbstractModel
 	/**
 	 * Returns an array containing fileNames as string for a given $dir
 	 *
-	 * @param   string  $dir    directory to scan
-	 * @param	array	$files	array with fileNames
-	 * @param	string	$parent parent directory
+	 * @param   string  $dir     directory to scan
+	 * @param   array   $files   array with fileNames
+	 * @param   string  $parent  parent directory
 	 *
-	 * @return  array	fileNames
+	 * @return  array    fileNames
 	 *
 	 * @since   3.0
 	 */
@@ -277,12 +295,13 @@ class PullModel extends AbstractModel
 				if (is_dir($dir . '/' . $file))
 				{
 					unset($temp[$key]);
-					$temp = $this->getListOfFiles($dir . '/' . $file, $temp, (is_null($parent) ? $file : $parent . '/' . $file));
+					$files = $this->getListOfFiles($dir . '/' . $file, $files,
+						(is_null($parent) ? $file : $parent . '/' . $file));
 				}
 
-				if (!is_null($parent))
+				if (!is_null($parent) && !is_dir($dir . '/' . $file))
 				{
-					$temp[$file] = $parent . '/' . $file;
+					$temp[$key] = $parent . '/' . $file;
 				}
 			}
 
@@ -299,7 +318,7 @@ class PullModel extends AbstractModel
 	/**
 	 * Removes directory and its content recursively
 	 *
-	 * @param   string  $dir    directory to delete
+	 * @param   string  $dir  directory to delete
 	 *
 	 * @return  void
 	 *
@@ -329,7 +348,6 @@ class PullModel extends AbstractModel
 			rmdir($dir);
 		}
 	}
-
 
 	/**
 	 * Patches the code with the supplied pull request
@@ -506,25 +524,7 @@ class PullModel extends AbstractModel
 			unset($file->body);
 		}
 
-		$record = (object) array(
-			'pull_id'         => $pull->number,
-			'data'            => json_encode($parsedFiles),
-			'patched_by'      => Factory::getUser()->id,
-			'applied'         => 1,
-			'applied_version' => JVERSION,
-		);
-
-		$db = $this->getDb();
-
-		$db->insertObject('#__patchtester_tests', $record);
-
-		// Insert the retrieved commit SHA into the pulls table for this item
-		$db->setQuery(
-			$db->getQuery(true)
-				->update('#__patchtester_pulls')
-				->set('sha = ' . $db->quote($pull->head->sha))
-				->where($db->quoteName('pull_id') . ' = ' . (int) $id)
-		)->execute();
+		$this->saveAppliedPatch($pull->number, $parsedFiles, $pull->head->sha);
 
 		// Change the media version
 		$version = new Version;
@@ -534,7 +534,132 @@ class PullModel extends AbstractModel
 	}
 
 	/**
+	 * Saves the applied patch into database
+	 *
+	 * @param   integer  $id        ID of the applied pull request
+	 * @param   array    $fileList  List of files
+	 * @param   string   $sha       sha-key from pull request
+	 *
+	 * @return  void
+	 *
+	 * @since   3.0
+	 */
+	public function saveAppliedPatch($id, $fileList, $sha = null)
+	{
+		$record = (object) array(
+			'pull_id'         => $id,
+			'data'            => json_encode($fileList),
+			'patched_by'      => Factory::getUser()->id,
+			'applied'         => 1,
+			'applied_version' => JVERSION,
+		);
+
+		$db = $this->getDb();
+
+		$db->insertObject('#__patchtester_tests', $record);
+
+		if (!is_null($sha))
+		{
+			// Insert the retrieved commit SHA into the pulls table for this item
+			$db->setQuery(
+				$db->getQuery(true)
+					->update('#__patchtester_pulls')
+					->set('sha = ' . $db->quote($sha))
+					->where($db->quoteName('pull_id') . ' = ' . (int) $id)
+			)->execute();
+		}
+	}
+
+	/**
 	 * Reverts the specified pull request
+	 * However uses different methods for different repositories.
+	 *
+	 * @param   integer  $id  ID of the pull request to revert
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 * @throws  \RuntimeException
+	 */
+	public function revert($id)
+	{
+		$params = ComponentHelper::getParams('com_patchtester');
+
+		// Decide based on repository settings whether patch will be applied through Github or CIServer
+		if ($params->get('repo', 'joomla-cms') === 'joomla-cms'
+			&& $params->get('org', 'joomla') === 'joomla')
+		{
+			return $this->revertWithCIServer($id);
+		}
+		else
+		{
+			return $this->revertWithGitHub($id);
+		}
+	}
+
+	/**
+	 * Reverts the specified pull request with CIServer options
+	 *
+	 * @param   integer  $id  ID of the pull request to revert
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 * @throws  \RuntimeException
+	 */
+	public function revertWithCIServer($id)
+	{
+		// Get the CIServer Registry
+		$ciSettings = Helper::initializeCISettings();
+
+		$testRecord = $this->getTestRecord($id);
+
+		// We don't want to restore files from an older version
+		if ($testRecord->applied_version != JVERSION)
+		{
+			return $this->removeTest($testRecord);
+		}
+
+		$files = json_decode($testRecord->data);
+
+		if (!$files)
+		{
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_READING_DATABASE_TABLE', __METHOD__, htmlentities($testRecord->data)));
+		}
+
+		$backupsPath = $ciSettings->get('folder.backups') . "/$testRecord->pull_id";
+
+		foreach ($files as $file)
+		{
+			// Delete file from root of it exists
+			if (file_Exists(JPATH_ROOT . "/$file"))
+			{
+				unlink(JPATH_ROOT . "/$file");
+
+				// Move from backup, if it exists there
+				if (file_exists("$backupsPath/$file"))
+				{
+					rename("$backupsPath/$file", JPATH_ROOT . "/$file");
+				}
+			}
+			// Move from backup, if file exists there - got deleted by patch
+			elseif (file_exists("$backupsPath/$file"))
+			{
+				rename("$backupsPath/$file", JPATH_ROOT . "/$file");
+			}
+		}
+
+		$this->rmDir($backupsPath);
+
+		// Change the media version
+		$version = new Version;
+		$version->refreshMediaVersion();
+
+		return $this->removeTest($testRecord);
+	}
+
+	/**
+	 * Reverts the specified pull request with Github Requests
 	 *
 	 * @param   integer  $id  ID of the pull request to revert
 	 *
@@ -543,16 +668,9 @@ class PullModel extends AbstractModel
 	 * @since   2.0
 	 * @throws  \RuntimeException
 	 */
-	public function revert($id)
+	public function revertWithGitHub($id)
 	{
-		$db = $this->getDb();
-
-		$testRecord = $db->setQuery(
-			$db->getQuery(true)
-				->select('*')
-				->from('#__patchtester_tests')
-				->where('id = ' . (int) $id)
-		)->loadObject();
+		$testRecord = $this->getTestRecord($id);
 
 		// We don't want to restore files from an older version
 		if ($testRecord->applied_version != JVERSION)
@@ -678,5 +796,26 @@ class PullModel extends AbstractModel
 		)->execute();
 
 		return true;
+	}
+
+	/**
+	 * Retrieves test data from database by specific id
+	 *
+	 * @param   integer  $id  ID of the record
+	 *
+	 * @return  stdClass $testRecord  The record looking for
+	 *
+	 * @since   3.0.0
+	 */
+	private function getTestRecord($id)
+	{
+		$db = $this->getDb();
+
+		return $db->setQuery(
+			$db->getQuery(true)
+				->select('*')
+				->from('#__patchtester_tests')
+				->where('id = ' . (int) $id)
+		)->loadObject();
 	}
 }

@@ -75,7 +75,7 @@ abstract class Helper
 		$options = new Registry;
 
 		// Set CI server address for the request
-		$options->set('server.url', 'https://stuff.gramma.name');
+		$options->set('server.url', 'https://joomla-dev.lukaskimpel.com');
 
 		// Set name of the zip archive
 		$options->set('zip.name', 'build.zip');
