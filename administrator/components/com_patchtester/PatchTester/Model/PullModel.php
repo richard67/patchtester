@@ -174,7 +174,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @throws  \RuntimeException
 	 */
-	public function applyWithCIServer($id)
+	private function applyWithCIServer($id)
 	{
 		// Get the CIServer Registry
 		$ciSettings = Helper::initializeCISettings();
@@ -232,7 +232,7 @@ class PullModel extends AbstractModel
 		// Get a list of files from folder and deleted.log
 		$files = $this->getListOfFiles($tempPath);
 
-		// ToDo add deleted files to fileList
+		// ToDo add deleted files loop
 
 		mkdir($backupsPath);
 
@@ -362,7 +362,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @throws  \RuntimeException
 	 */
-	public function applyWithGitHub($id)
+	private function applyWithGitHub($id)
 	{
 		// Get the Github object
 		$github = Helper::initializeGithub();
@@ -546,7 +546,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @since   3.0
 	 */
-	public function saveAppliedPatch($id, $fileList, $sha = null)
+	private function saveAppliedPatch($id, $fileList, $sha = null)
 	{
 		$record = (object) array(
 			'pull_id'         => $id,
@@ -609,7 +609,7 @@ class PullModel extends AbstractModel
 	 * @since   3.0
 	 * @throws  \RuntimeException
 	 */
-	public function revertWithCIServer($id)
+	private function revertWithCIServer($id)
 	{
 		// Get the CIServer Registry
 		$ciSettings = Helper::initializeCISettings();
@@ -636,7 +636,17 @@ class PullModel extends AbstractModel
 			// Delete file from root of it exists
 			if (file_Exists(JPATH_ROOT . "/$file"))
 			{
+				$filePath = explode("/", $file);
+				array_pop($filePath);
+				$filePath = implode("/", $filePath);
+
 				unlink(JPATH_ROOT . "/$file");
+
+				// If folder is empty, remove it as well
+				if (count(glob(JPATH_ROOT . "/$filePath/*")) === 0)
+				{
+					rmdir(JPATH_ROOT . "/$filePath");
+				}
 
 				// Move from backup, if it exists there
 				if (file_exists("$backupsPath/$file"))
@@ -670,7 +680,7 @@ class PullModel extends AbstractModel
 	 * @since   2.0
 	 * @throws  \RuntimeException
 	 */
-	public function revertWithGitHub($id)
+	private function revertWithGitHub($id)
 	{
 		$testRecord = $this->getTestRecord($id);
 
