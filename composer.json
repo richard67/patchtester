@@ -4,7 +4,7 @@
     "description": "Joomla! Patch Testing Component",
     "keywords": ["joomla", "cms"],
     "homepage": "https://github.com/joomla-extensions/patchtester",
-    "license": "GPL-2.0+",
+    "license": "GPL-2.0-or-later",
     "config": {
         "vendor-dir": "administrator/components/com_patchtester/vendor"
     },
