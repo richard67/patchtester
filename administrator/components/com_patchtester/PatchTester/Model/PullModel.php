@@ -8,12 +8,14 @@
 
 namespace PatchTester\Model;
 
+use Joomla\Archive\Zip;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Version;
 use Joomla\Filesystem\File;
+use Joomla\Filesystem\Folder;
 use PatchTester\GitHub\Exception\UnexpectedResponse;
 use PatchTester\Helper;
 
@@ -182,13 +184,14 @@ class PullModel extends AbstractModel
 		// Create tmp folder if it does not exist
 		if (!file_exists($ciSettings->get('folder.temp')))
 		{
-			mkdir($ciSettings->get('folder.temp'));
+			Folder::create($ciSettings->get('folder.temp'));
 		}
 
-		$tempPath    = $ciSettings->get('folder.temp') . "/$id";
-		$backupsPath = $ciSettings->get('folder.backups') . "/$id";
-		$zipPath     = $tempPath . '/' . $ciSettings->get('zip.name');
-		$serverPath  = sprintf($ciSettings->get('zip.url'), $id);
+		$tempPath           = $ciSettings->get('folder.temp') . "/$id";
+		$backupsPath        = $ciSettings->get('folder.backups') . "/$id";
+		$deletedFilesPath   = $tempPath . '/' . $ciSettings->get('zip.deleted_log');
+		$zipPath            = $tempPath . '/' . $ciSettings->get('zip.name');
+		$serverPath         = sprintf($ciSettings->get('zip.url'), $id);
 
 		// Patch has already been applied
 		if (file_exists($backupsPath))
@@ -201,69 +204,68 @@ class PullModel extends AbstractModel
 
 		if (!$serverHeaders || $serverHeaders[0] != 'HTTP/1.1 200 OK')
 		{
-			throw new \RuntimeException(Text::_('File does not exist on Server'));
+			throw new \RuntimeException(Text::_('COM_PATCHTESTER_SERVER_RESPONDED_NOT_200'));
 		}
 
-		mkdir($tempPath);
+		Folder::create($tempPath);
 		file_put_contents($zipPath, fopen($serverPath, "r"));
 
 		// Check if zip folder could have been downloaded
 		if (!file_exists($zipPath))
 		{
-			$this->rmDir($tempPath);
-			throw new \RuntimeException(Text::_('Zip has not been created'));
+			Folder::delete($tempPath);
+			throw new \RuntimeException(Text::_('COM_PATCHTESTER_ZIP_DOES_NOT_EXIST'));
 		}
 
-		$zip = new \ZipArchive;
-		$zip->open($zipPath);
+		$zip = new Zip;
 
-		// Check if zip contains files
-		if ($zip->numFiles === 0)
+		if (!$zip->extract($zipPath, $tempPath))
 		{
-			$zip->close();
-			$this->rmDir($tempPath);
-			throw new \RuntimeException(Text::_('Zip is empty'));
+			Folder::delete($tempPath);
+			throw new \RuntimeException(Text::_('COM_PATCHTESTER_ZIP_EXTRACT_FAILED'));
 		}
-
-		$zip->extractTo($tempPath);
-		$zip->close();
-		unlink($zipPath);
 
 		// Get a list of files from folder and deleted.log
-		$files = $this->getListOfFiles($tempPath);
+		File::delete($zipPath);
+		$files = Folder::files($tempPath, null, true, true);
+		$files = str_replace(Path::clean("$tempPath\\"), '', $files);
 
-		// ToDo add deleted files loop
+		$deletedFiles = file($deletedFilesPath);
 
-		mkdir($backupsPath);
+		Folder::create($backupsPath);
 
 		// Moves existent files to backup and replace them or creates new one if they don't exist
 		foreach ($files as $file)
 		{
-			$filePath = explode("/", $file);
+			$filePath = explode("\\", $file);
 			array_pop($filePath);
-			$filePath = implode("/", $filePath);
+			$filePath = implode("\\", $filePath);
 
 			if (file_exists(JPATH_ROOT . "/$file"))
 			{
 				// Create directories if they don't exist until file
 				if (!file_exists("$backupsPath/$filePath"))
 				{
-					mkdir("$backupsPath/$filePath",null, true);
+					Folder::create("$backupsPath/$filePath");
 				}
 
-				rename(JPATH_ROOT . "/$file", "$backupsPath/$file");
+				File::move(JPATH_ROOT . "/$file", "$backupsPath/$file");
 			}
+
 			// Create directories if they don't exist until file
 			if (!file_exists(JPATH_ROOT . "/$filePath"))
 			{
-				mkdir(JPATH_ROOT . "/$filePath",null, true);
+				Folder::create(JPATH_ROOT . "/$filePath");
 			}
 
-			copy("$tempPath/$file", JPATH_ROOT . "/$file");
+			if (file_exists("$tempPath/$file"))
+			{
+				File::copy("$tempPath/$file", JPATH_ROOT . "/$file");
+			}
 		}
 
 		// Clear temp folder and store applied patch in database
-		$this->rmDir($tempPath);
+		Folder::delete($tempPath);
 
 		$this->saveAppliedPatch($id, $files);
 
@@ -272,83 +274,6 @@ class PullModel extends AbstractModel
 		$version->refreshMediaVersion();
 
 		return true;
-	}
-
-	/**
-	 * Returns an array containing fileNames as string for a given $dir
-	 *
-	 * @param   string  $dir     directory to scan
-	 * @param   array   $files   array with fileNames
-	 * @param   string  $parent  parent directory
-	 *
-	 * @return  array    fileNames
-	 *
-	 * @since   3.0
-	 */
-	private function getListOfFiles($dir, $files = [], $parent = null)
-	{
-		if (is_dir($dir))
-		{
-			// Remove dot files/folders
-			$temp = preg_grep("/^([^.])/", scandir($dir));
-
-			foreach ($temp as $key => $file)
-			{
-				if (is_dir($dir . '/' . $file))
-				{
-					unset($temp[$key]);
-					$files = $this->getListOfFiles($dir . '/' . $file, $files,
-						(is_null($parent) ? $file : $parent . '/' . $file));
-				}
-
-				if (!is_null($parent) && !is_dir($dir . '/' . $file))
-				{
-					$temp[$key] = $parent . '/' . $file;
-				}
-			}
-
-			$files = array_merge($files, $temp);
-
-			return $files;
-		}
-		else
-		{
-			return [];
-		}
-	}
-
-	/**
-	 * Removes directory and its content recursively
-	 *
-	 * @param   string  $dir  directory to delete
-	 *
-	 * @return  void
-	 *
-	 * @since   3.0
-	 */
-	private function rmDir($dir)
-	{
-		if (is_dir($dir))
-		{
-			$files = scandir($dir);
-
-			foreach ($files as $file)
-			{
-				if ($file != "." && $file != "..")
-				{
-					if (is_dir($dir . "/" . $file))
-					{
-						$this->rmDir($dir . "/" . $file);
-					}
-					else
-					{
-						unlink($dir . "/" . $file);
-					}
-				}
-			}
-
-			rmdir($dir);
-		}
 	}
 
 	/**
@@ -636,32 +561,32 @@ class PullModel extends AbstractModel
 			// Delete file from root of it exists
 			if (file_Exists(JPATH_ROOT . "/$file"))
 			{
-				$filePath = explode("/", $file);
+				$filePath = explode("\\", $file);
 				array_pop($filePath);
-				$filePath = implode("/", $filePath);
+				$filePath = implode("\\", $filePath);
 
-				unlink(JPATH_ROOT . "/$file");
+				File::delete(JPATH_ROOT . "/$file");
 
 				// If folder is empty, remove it as well
 				if (count(glob(JPATH_ROOT . "/$filePath/*")) === 0)
 				{
-					rmdir(JPATH_ROOT . "/$filePath");
+					Folder::delete(JPATH_ROOT . "/$filePath");
 				}
 
 				// Move from backup, if it exists there
 				if (file_exists("$backupsPath/$file"))
 				{
-					rename("$backupsPath/$file", JPATH_ROOT . "/$file");
+					File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
 				}
 			}
 			// Move from backup, if file exists there - got deleted by patch
 			elseif (file_exists("$backupsPath/$file"))
 			{
-				rename("$backupsPath/$file", JPATH_ROOT . "/$file");
+				File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
 			}
 		}
 
-		$this->rmDir($backupsPath);
+		Folder::delete($backupsPath);
 
 		// Change the media version
 		$version = new Version;

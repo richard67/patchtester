@@ -21,8 +21,8 @@ HTMLHelper::_('script', 'com_patchtester/fetcher.js', array('version' => 'auto',
 <div id="patchtester-container">
 	<h1 id="patchtester-progress-header"><?php echo Text::_('COM_PATCHTESTER_FETCH_INITIALIZING'); ?></h1>
 	<p id="patchtester-progress-message"><?php echo Text::_('COM_PATCHTESTER_FETCH_INITIALIZING_DESCRIPTION'); ?></p>
-	<div id="progress" class="progress progress-striped active">
-		<div id="progress-bar" class="bar bar-success" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+	<div id="progress" class="progress">
+		<div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" role="progressbar"></div>
 	</div>
 	<input id="patchtester-token" type="hidden" name="<?php echo Factory::getSession()->getFormToken(); ?>" value="1" />
 </div>

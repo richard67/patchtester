@@ -79,9 +79,10 @@ abstract class Helper
 
 		// Set name of the zip archive
 		$options->set('zip.name', 'build.zip');
+		$options->set('zip.deleted_log', 'deleted_files.log');
 
 		// Set temp archive for extracting and downloading files
-		$options->set('folder.temp', JPATH_COMPONENT . '/temp');
+		$options->set('folder.temp', Factory::getConfig()->get('tmp_path'));
 		$options->set('folder.backups', JPATH_COMPONENT . '/backups');
 
 		// Set full url for addressing the file
