@@ -12,11 +12,13 @@ use Joomla\Archive\Zip;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Path;
+use Joomla\CMS\Http\Response;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Version;
 use Joomla\Filesystem\File;
 use Joomla\Filesystem\Folder;
 use PatchTester\GitHub\Exception\UnexpectedResponse;
+use PatchTester\GitHub\GitHub;
 use PatchTester\Helper;
 
 /**
@@ -181,6 +183,13 @@ class PullModel extends AbstractModel
 		// Get the CIServer Registry
 		$ciSettings = Helper::initializeCISettings();
 
+		// Get the Github object
+		$github = Helper::initializeGithub();
+
+		// retrieve pullData for sha later on.
+		$pull = $this->retrieveGitHubData($github, $id);
+		$sha  = $pull->head->sha;
+
 		// Create tmp folder if it does not exist
 		if (!file_exists($ciSettings->get('folder.temp')))
 		{
@@ -267,7 +276,7 @@ class PullModel extends AbstractModel
 		// Clear temp folder and store applied patch in database
 		Folder::delete($tempPath);
 
-		$this->saveAppliedPatch($id, $files);
+		$this->saveAppliedPatch($id, $files, $sha);
 
 		// Change the media version
 		$version = new Version;
@@ -292,33 +301,7 @@ class PullModel extends AbstractModel
 		// Get the Github object
 		$github = Helper::initializeGithub();
 
-		try
-		{
-			$rateResponse = $github->getRateLimit();
-			$rate         = json_decode($rateResponse->body);
-		}
-		catch (UnexpectedResponse $e)
-		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
-		}
-
-		// If over the API limit, we can't build this list
-		if ($rate->resources->core->remaining == 0)
-		{
-			throw new \RuntimeException(
-				Text::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset))
-			);
-		}
-
-		try
-		{
-			$pullResponse = $github->getPullRequest($this->getState()->get('github_user'), $this->getState()->get('github_repo'), $id);
-			$pull         = json_decode($pullResponse->body);
-		}
-		catch (UnexpectedResponse $e)
-		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
-		}
+		$pull = $this->retrieveGitHubData($github, $id);
 
 		if (is_null($pull->head->repo))
 		{
@@ -458,6 +441,51 @@ class PullModel extends AbstractModel
 		$version->refreshMediaVersion();
 
 		return true;
+	}
+
+	/**
+	 * Patches the code with the supplied pull request
+	 *
+	 * @param   GitHub      $github  github object
+	 * @param   integer     $id      Id of the pull request
+	 *
+	 * @return  Response
+	 *
+	 * @since   2.0
+	 *
+	 * @throws  \RuntimeException
+	 */
+	private function retrieveGitHubData($github, $id)
+	{
+		try
+		{
+			$rateResponse = $github->getRateLimit();
+			$rate         = json_decode($rateResponse->body);
+		}
+		catch (UnexpectedResponse $e)
+		{
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
+		}
+
+		// If over the API limit, we can't build this list
+		if ($rate->resources->core->remaining == 0)
+		{
+			throw new \RuntimeException(
+				Text::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset))
+			);
+		}
+
+		try
+		{
+			$pullResponse = $github->getPullRequest($this->getState()->get('github_user'), $this->getState()->get('github_repo'), $id);
+			$pull         = json_decode($pullResponse->body);
+		}
+		catch (UnexpectedResponse $e)
+		{
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
+		}
+
+		return $pull;
 	}
 
 	/**
