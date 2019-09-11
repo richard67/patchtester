@@ -75,11 +75,11 @@ abstract class Helper
 		$options = new Registry;
 
 		// Set CI server address for the request
-		$options->set('server.url', 'https://joomla-dev.lukaskimpel.com');
+		$options->set('server.url', 'https://stuff.gramma.name');
 
 		// Set name of the zip archive
 		$options->set('zip.name', 'build.zip');
-		$options->set('zip.deleted_log', 'deleted_files.log');
+		$options->set('zip.log.name', 'deleted_files.log');
 
 		// Set temp archive for extracting and downloading files
 		$options->set('folder.temp', Factory::getConfig()->get('tmp_path'));

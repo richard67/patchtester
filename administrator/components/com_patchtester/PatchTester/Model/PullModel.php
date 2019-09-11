@@ -196,11 +196,13 @@ class PullModel extends AbstractModel
 			Folder::create($ciSettings->get('folder.temp'));
 		}
 
-		$tempPath           = $ciSettings->get('folder.temp') . "/$id";
-		$backupsPath        = $ciSettings->get('folder.backups') . "/$id";
-		$deletedFilesPath   = $tempPath . '/' . $ciSettings->get('zip.deleted_log');
-		$zipPath            = $tempPath . '/' . $ciSettings->get('zip.name');
-		$serverPath         = sprintf($ciSettings->get('zip.url'), $id);
+		$tempPath                 = $ciSettings->get('folder.temp') . "/$id";
+		$backupsPath              = $ciSettings->get('folder.backups') . "/$id";
+
+		$delLogPath               = $tempPath . '/' . $ciSettings->get('zip.log.name');
+		$zipPath                  = $tempPath . '/' . $ciSettings->get('zip.name');
+
+		$serverZipPath            = sprintf($ciSettings->get('zip.url'), $id);
 
 		// Patch has already been applied
 		if (file_exists($backupsPath))
@@ -209,7 +211,7 @@ class PullModel extends AbstractModel
 		}
 
 		// Check if zip folder exists on server
-		$serverHeaders = @get_headers($serverPath);
+		$serverHeaders = @get_headers($serverZipPath);
 
 		if (!$serverHeaders || $serverHeaders[0] != 'HTTP/1.1 200 OK')
 		{
@@ -217,7 +219,7 @@ class PullModel extends AbstractModel
 		}
 
 		Folder::create($tempPath);
-		file_put_contents($zipPath, fopen($serverPath, "r"));
+		file_put_contents($zipPath, fopen($serverZipPath, "r"));
 
 		// Check if zip folder could have been downloaded
 		if (!file_exists($zipPath))
@@ -234,49 +236,72 @@ class PullModel extends AbstractModel
 			throw new \RuntimeException(Text::_('COM_PATCHTESTER_ZIP_EXTRACT_FAILED'));
 		}
 
-		// Get a list of files from folder and deleted.log
+		// remove zip to avoid get listing afterwards
 		File::delete($zipPath);
+
+		// get files from deleted_logs
+		$deletedFiles = file($delLogPath);
+
+		// remove deleted_logs to avoid get listing afterwards
+		File::delete($delLogPath);
+
+		// retrieve all files and merge them into one array
 		$files = Folder::files($tempPath, null, true, true);
 		$files = str_replace(Path::clean("$tempPath\\"), '', $files);
-
-		$deletedFiles = file($deletedFilesPath);
+		$files = array_merge($files, $deletedFiles);
 
 		Folder::create($backupsPath);
 
 		// Moves existent files to backup and replace them or creates new one if they don't exist
-		foreach ($files as $file)
+		foreach ($files as $key => $file)
 		{
-			$filePath = explode("\\", $file);
-			array_pop($filePath);
-			$filePath = implode("\\", $filePath);
-
-			if (file_exists(JPATH_ROOT . "/$file"))
+			try
 			{
-				// Create directories if they don't exist until file
-				if (!file_exists("$backupsPath/$filePath"))
+				$filePath = explode("\\", $file);
+				array_pop($filePath);
+				$filePath = implode("\\", $filePath);
+
+				// deleted_logs returns files as well as folder, if value is folder, unset and skip
+				if (is_dir(JPATH_ROOT . "/$file"))
 				{
-					Folder::create("$backupsPath/$filePath");
+					unset($files[$key]);
+					continue;
 				}
 
-				File::move(JPATH_ROOT . "/$file", "$backupsPath/$file");
-			}
+				if (file_exists(JPATH_ROOT . "/$file"))
+				{
+					// Create directories if they don't exist until file
+					if (!file_exists("$backupsPath/$filePath"))
+					{
+						Folder::create("$backupsPath/$filePath");
+					}
 
-			// Create directories if they don't exist until file
-			if (!file_exists(JPATH_ROOT . "/$filePath"))
-			{
-				Folder::create(JPATH_ROOT . "/$filePath");
-			}
+					File::move(JPATH_ROOT . "/$file", "$backupsPath/$file");
+				}
 
-			if (file_exists("$tempPath/$file"))
+				// Create directories if they don't exist until file
+				if (!file_exists(JPATH_ROOT . "/$filePath") || !is_dir(JPATH_ROOT . "/$filePath"))
+				{
+					Folder::create(JPATH_ROOT . "/$filePath");
+				}
+
+				if (file_exists("$tempPath/$file"))
+				{
+					File::copy("$tempPath/$file", JPATH_ROOT . "/$file");
+				}
+			}
+			catch(\RuntimeException $e)
 			{
-				File::copy("$tempPath/$file", JPATH_ROOT . "/$file");
+				Folder::delete($tempPath);
+				Folder::move($backupsPath, $backupsPath . "_failed");
+				throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FAILED_APPLYING_PATCH', $file, $e->getMessage()));
 			}
 		}
 
 		// Clear temp folder and store applied patch in database
 		Folder::delete($tempPath);
 
-		$this->saveAppliedPatch($id, $files, $sha);
+		$this->saveAppliedPatch($id, $files);
 
 		// Change the media version
 		$version = new Version;
@@ -586,31 +611,44 @@ class PullModel extends AbstractModel
 
 		foreach ($files as $file)
 		{
-			// Delete file from root of it exists
-			if (file_Exists(JPATH_ROOT . "/$file"))
+			try
 			{
 				$filePath = explode("\\", $file);
 				array_pop($filePath);
 				$filePath = implode("\\", $filePath);
 
-				File::delete(JPATH_ROOT . "/$file");
-
-				// If folder is empty, remove it as well
-				if (count(glob(JPATH_ROOT . "/$filePath/*")) === 0)
+				// Delete file from root of it exists
+				if (file_Exists(JPATH_ROOT . "/$file"))
 				{
-					Folder::delete(JPATH_ROOT . "/$filePath");
+
+					File::delete(JPATH_ROOT . "/$file");
+
+					// Move from backup, if it exists there
+					if (file_exists("$backupsPath/$file"))
+					{
+						File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
+					}
+
+					// If folder is empty, remove it as well
+					if (count(glob(JPATH_ROOT . "/$filePath/*")) === 0)
+					{
+						Folder::delete(JPATH_ROOT . "/$filePath");
+					}
 				}
-
-				// Move from backup, if it exists there
-				if (file_exists("$backupsPath/$file"))
+				// Move from backup, if file exists there - got deleted by patch
+				elseif (file_exists("$backupsPath/$file"))
 				{
+					if (!file_exists(JPATH_ROOT . "/$filePath"))
+					{
+						Folder::create(JPATH_ROOT . "/$filePath");
+					}
+
 					File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
 				}
 			}
-			// Move from backup, if file exists there - got deleted by patch
-			elseif (file_exists("$backupsPath/$file"))
+			catch(\RuntimeException $e)
 			{
-				File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
+				throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FAILED_REVERT_PATCH', $file, $e->getMessage()));
 			}
 		}
 
