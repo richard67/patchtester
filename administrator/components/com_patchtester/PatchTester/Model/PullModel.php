@@ -187,8 +187,17 @@ class PullModel extends AbstractModel
 		$github = Helper::initializeGithub();
 
 		// retrieve pullData for sha later on.
-		$pull = $this->retrieveGitHubData($github, $id);
-		$sha  = $pull->head->sha;
+		try
+		{
+			$pull = $this->retrieveGitHubData($github, $id);
+			$sha  = $pull->head->sha;
+		}
+		catch (\RuntimeException $e)
+		{
+			// Catch the Exception and continue, because the hash is not that
+			// necessary for applying patches
+			$sha = "Error:429";
+		}
 
 		// Create tmp folder if it does not exist
 		if (!file_exists($ciSettings->get('folder.temp')))
@@ -241,6 +250,7 @@ class PullModel extends AbstractModel
 
 		// get files from deleted_logs
 		$deletedFiles = file($delLogPath);
+		$deletedFiles = array_map('trim', $deletedFiles);
 
 		// remove deleted_logs to avoid get listing afterwards
 		File::delete($delLogPath);
@@ -257,7 +267,7 @@ class PullModel extends AbstractModel
 		{
 			try
 			{
-				$filePath = explode("\\", $file);
+				$filePath = explode("\\", Path::clean($file));
 				array_pop($filePath);
 				$filePath = implode("\\", $filePath);
 
@@ -301,7 +311,7 @@ class PullModel extends AbstractModel
 		// Clear temp folder and store applied patch in database
 		Folder::delete($tempPath);
 
-		$this->saveAppliedPatch($id, $files);
+		$this->saveAppliedPatch($id, $files, $sha);
 
 		// Change the media version
 		$version = new Version;
