@@ -156,7 +156,7 @@ class PullModel extends AbstractModel
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if ($params->get('repo', 'joomla-cms') === 'joomla-cms'
+		if ((bool) $params->get('ci_switch', 1) && $params->get('repo', 'joomla-cms') === 'joomla-cms'
 			&& $params->get('org', 'joomla') === 'joomla')
 		{
 			return $this->applyWithCIServer($id);
@@ -249,11 +249,14 @@ class PullModel extends AbstractModel
 		File::delete($zipPath);
 
 		// get files from deleted_logs
-		$deletedFiles = file($delLogPath);
+		$deletedFiles = (file($delLogPath) ? file($delLogPath) : []);
 		$deletedFiles = array_map('trim', $deletedFiles);
 
-		// remove deleted_logs to avoid get listing afterwards
-		File::delete($delLogPath);
+		if(file_exists($delLogPath))
+		{
+			// remove deleted_logs to avoid get listing afterwards
+			File::delete($delLogPath);
+		}
 
 		// retrieve all files and merge them into one array
 		$files = Folder::files($tempPath, null, true, true);
@@ -289,20 +292,21 @@ class PullModel extends AbstractModel
 					File::move(JPATH_ROOT . "/$file", "$backupsPath/$file");
 				}
 
-				// Create directories if they don't exist until file
-				if (!file_exists(JPATH_ROOT . "/$filePath") || !is_dir(JPATH_ROOT . "/$filePath"))
-				{
-					Folder::create(JPATH_ROOT . "/$filePath");
-				}
-
 				if (file_exists("$tempPath/$file"))
 				{
+					// Create directories if they don't exist until file
+					if (!file_exists(JPATH_ROOT . "/$filePath") || !is_dir(JPATH_ROOT . "/$filePath"))
+					{
+						Folder::create(JPATH_ROOT . "/$filePath");
+					}
+
 					File::copy("$tempPath/$file", JPATH_ROOT . "/$file");
 				}
 			}
 			catch(\RuntimeException $e)
 			{
 				Folder::delete($tempPath);
+
 				Folder::move($backupsPath, $backupsPath . "_failed");
 				throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FAILED_APPLYING_PATCH', $file, $e->getMessage()));
 			}
@@ -576,7 +580,7 @@ class PullModel extends AbstractModel
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if ($params->get('repo', 'joomla-cms') === 'joomla-cms'
+		if ((bool) $params->get('ci_switch', 1) && $params->get('repo', 'joomla-cms') === 'joomla-cms'
 			&& $params->get('org', 'joomla') === 'joomla')
 		{
 			return $this->revertWithCIServer($id);

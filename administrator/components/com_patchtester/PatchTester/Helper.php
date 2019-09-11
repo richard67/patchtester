@@ -72,10 +72,12 @@ abstract class Helper
 	 */
 	public static function initializeCISettings()
 	{
+		$params = ComponentHelper::getParams('com_patchtester');
+
 		$options = new Registry;
 
 		// Set CI server address for the request
-		$options->set('server.url', 'https://joomla-dev.lukaskimpel.com');
+		$options->set('server.url', $params->get('ci_server', 'https://ci.joomla.org'));
 
 		// Set name of the zip archive
 		$options->set('zip.name', 'build.zip');
