@@ -208,6 +208,7 @@ class PullModel extends AbstractModel
 		$tempPath                 = $ciSettings->get('folder.temp') . "/$id";
 		$backupsPath              = $ciSettings->get('folder.backups') . "/$id";
 
+		$patchChainPath           = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
 		$delLogPath               = $tempPath . '/' . $ciSettings->get('zip.log.name');
 		$zipPath                  = $tempPath . '/' . $ciSettings->get('zip.name');
 
@@ -316,6 +317,19 @@ class PullModel extends AbstractModel
 		Folder::delete($tempPath);
 
 		$this->saveAppliedPatch($id, $files, $sha);
+
+		// Write or create patch chain for correct order of patching
+		if (!file_exists($patchChainPath) || filesize($patchChainPath) === 0)
+		{
+			File::write($patchChainPath, $id);
+		}
+		else
+		{
+			// Remove any from php set EOL in log file, add id and rewrite file
+			$patchChain = explode(PHP_EOL, file_get_contents($patchChainPath));
+			$patchChain[] = $id;
+			File::write($patchChainPath, implode(PHP_EOL, $patchChain));
+		}
 
 		// Change the media version
 		$version = new Version;
@@ -607,6 +621,21 @@ class PullModel extends AbstractModel
 		$ciSettings = Helper::initializeCISettings();
 
 		$testRecord = $this->getTestRecord($id);
+
+		// Get PatchChain as array, remove any EOL set by php
+		$patchChainPath = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
+		$patchChain     = array_reverse(explode(PHP_EOL, file_get_contents($patchChainPath)));
+
+		// Allow only reverts in order of the patch chain
+		if ($patchChain[0] != $testRecord->pull_id)
+		{
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain[0]));
+		}
+		else
+		{
+			array_shift($patchChain);
+			File::write($patchChainPath, implode(PHP_EOL, array_reverse($patchChain)));
+		}
 
 		// We don't want to restore files from an older version
 		if ($testRecord->applied_version != JVERSION)
