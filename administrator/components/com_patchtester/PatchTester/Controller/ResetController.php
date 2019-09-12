@@ -47,7 +47,7 @@ class ResetController extends AbstractController
 
 			// Get PatchChain as array, remove any EOL set by php
 			$patchChainPath = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
-			$patchChain     = array_reverse(explode(PHP_EOL, file_get_contents($patchChainPath)));
+			$patchChain     = array_reverse(json_decode(file_get_contents($patchChainPath)));
 
 			// Check the applied patches in the database first
 			$appliedPatches = $testsModel->getAppliedPatches();
@@ -55,7 +55,8 @@ class ResetController extends AbstractController
 			if (count($patchChain) && count($appliedPatches))
 			{
 				// Get only the pull_id and remove all occurrences with patchChain
-				$appliedPatches = array_map(function($patch) { return $patch->pull_id; }, $appliedPatches);
+				$appliedPatches = array_map(function($patch) { return $patch->id; }, $appliedPatches);
+				$patchChain = array_map(function($patch) { return $patch->id; }, $patchChain);
 				$appliedPatches = array_diff($appliedPatches, $patchChain);
 			}
 

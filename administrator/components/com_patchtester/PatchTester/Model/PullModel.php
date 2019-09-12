@@ -316,19 +316,19 @@ class PullModel extends AbstractModel
 		// Clear temp folder and store applied patch in database
 		Folder::delete($tempPath);
 
-		$this->saveAppliedPatch($id, $files, $sha);
+		$lastInserted = $this->saveAppliedPatch($id, $files, $sha);
 
 		// Write or create patch chain for correct order of patching
 		if (!file_exists($patchChainPath) || filesize($patchChainPath) === 0)
 		{
-			File::write($patchChainPath, $id);
+			File::write($patchChainPath, json_encode([["id" => $lastInserted, "pull_id" => $id]]));
 		}
 		else
 		{
 			// Remove any from php set EOL in log file, add id and rewrite file
-			$patchChain = explode(PHP_EOL, file_get_contents($patchChainPath));
-			$patchChain[] = $id;
-			File::write($patchChainPath, implode(PHP_EOL, $patchChain));
+			$patchChain = json_decode(file_get_contents($patchChainPath));
+			$patchChain[] = ["id" => $lastInserted, "pull_id" => $id];
+			File::write($patchChainPath, json_encode($patchChain));
 		}
 
 		// Change the media version
@@ -548,7 +548,7 @@ class PullModel extends AbstractModel
 	 * @param   array    $fileList  List of files
 	 * @param   string   $sha       sha-key from pull request
 	 *
-	 * @return  void
+	 * @return  integer  $id    last inserted id
 	 *
 	 * @since   3.0
 	 */
@@ -565,6 +565,7 @@ class PullModel extends AbstractModel
 		$db = $this->getDb();
 
 		$db->insertObject('#__patchtester_tests', $record);
+		$insertId = $db->insertid();
 
 		if (!is_null($sha))
 		{
@@ -576,6 +577,8 @@ class PullModel extends AbstractModel
 					->where($db->quoteName('pull_id') . ' = ' . (int) $id)
 			)->execute();
 		}
+
+		return $insertId;
 	}
 
 	/**
@@ -624,17 +627,17 @@ class PullModel extends AbstractModel
 
 		// Get PatchChain as array, remove any EOL set by php
 		$patchChainPath = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
-		$patchChain     = array_reverse(explode(PHP_EOL, file_get_contents($patchChainPath)));
+		$patchChain     = array_reverse(json_decode(file_get_contents($patchChainPath)));
 
 		// Allow only reverts in order of the patch chain
-		if ($patchChain[0] != $testRecord->pull_id)
+		if ($patchChain[0]->id != $id)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain[0]));
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain[0]->pull_id));
 		}
 		else
 		{
 			array_shift($patchChain);
-			File::write($patchChainPath, implode(PHP_EOL, array_reverse($patchChain)));
+			File::write($patchChainPath, json_encode(array_reverse($patchChain)));
 		}
 
 		// We don't want to restore files from an older version
@@ -831,7 +834,7 @@ class PullModel extends AbstractModel
 			$db->getQuery(true)
 				->update('#__patchtester_pulls')
 				->set('sha = ' . $db->quote(''))
-				->where($db->quoteName('pull_id') . ' = ' . (int) $testRecord->pull_id)
+				->where($db->quoteName('id') . ' = ' . (int) $testRecord->id)
 		)->execute();
 
 		// And delete the record from the tests table
@@ -861,7 +864,7 @@ class PullModel extends AbstractModel
 			$db->getQuery(true)
 				->select('*')
 				->from('#__patchtester_tests')
-				->where('pull_id = ' . (int) $id)
+				->where('id = ' . (int) $id)
 		)->loadObject();
 	}
 }

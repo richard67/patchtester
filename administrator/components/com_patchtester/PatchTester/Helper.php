@@ -82,7 +82,7 @@ abstract class Helper
 		// Set name of the zip archive
 		$options->set('zip.name', 'build.zip');
 		$options->set('zip.log.name', 'deleted_files.log');
-		$options->set('zip.chain.name', 'patch_chain.log');
+		$options->set('zip.chain.name', 'patch_chain.json');
 
 		// Set temp archive for extracting and downloading files
 		$options->set('folder.temp', Factory::getConfig()->get('tmp_path'));
