@@ -615,7 +615,7 @@ class PullModel extends AbstractModel
 	 * @since   3.0
 	 * @throws  \RuntimeException
 	 */
-	private function revertWithCIServer($id)
+	public function revertWithCIServer($id)
 	{
 		// Get the CIServer Registry
 		$ciSettings = Helper::initializeCISettings();
@@ -714,7 +714,7 @@ class PullModel extends AbstractModel
 	 * @since   2.0
 	 * @throws  \RuntimeException
 	 */
-	private function revertWithGitHub($id)
+	public function revertWithGitHub($id)
 	{
 		$testRecord = $this->getTestRecord($id);
 
@@ -861,7 +861,7 @@ class PullModel extends AbstractModel
 			$db->getQuery(true)
 				->select('*')
 				->from('#__patchtester_tests')
-				->where('id = ' . (int) $id)
+				->where('pull_id = ' . (int) $id)
 		)->loadObject();
 	}
 }

@@ -63,7 +63,7 @@ foreach ($this->items as $i => $item) :
         </td>
         <td class="text-center">
 			<?php if ($item->applied) : ?>
-                <button type="button" class="btn btn-sm btn-success submitPatch" data-task="revert-<?php echo (int) $item->applied; ?>"><?php echo Text::_('COM_PATCHTESTER_REVERT_PATCH'); ?></button>
+                <button type="button" class="btn btn-sm btn-success submitPatch" data-task="revert-<?php echo (int) $item->pull_id; ?>"><?php echo Text::_('COM_PATCHTESTER_REVERT_PATCH'); ?></button>
 			<?php else : ?>
                 <button type="button" class="btn btn-sm btn-primary submitPatch" data-task="apply-<?php echo (int) $item->pull_id; ?>"><?php echo Text::_('COM_PATCHTESTER_APPLY_PATCH'); ?></button>
 			<?php endif; ?>

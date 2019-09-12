@@ -13,6 +13,7 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\Filesystem\File;
+use PatchTester\Helper;
 use PatchTester\Model\PullModel;
 use PatchTester\Model\PullsModel;
 use PatchTester\Model\TestsModel;
@@ -41,8 +42,22 @@ class ResetController extends AbstractController
 			$pullsModel = new PullsModel($this->context, null, Factory::getDbo());
 			$testsModel = new TestsModel(null, Factory::getDbo());
 
+			// Get the CIServer Registry
+			$ciSettings = Helper::initializeCISettings();
+
+			// Get PatchChain as array, remove any EOL set by php
+			$patchChainPath = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
+			$patchChain     = array_reverse(explode(PHP_EOL, file_get_contents($patchChainPath)));
+
 			// Check the applied patches in the database first
 			$appliedPatches = $testsModel->getAppliedPatches();
+
+			if (count($patchChain) && count($appliedPatches))
+			{
+				// Get only the pull_id and remove all occurrences with patchChain
+				$appliedPatches = array_map(function($patch) { return $patch->pull_id; }, $appliedPatches);
+				$appliedPatches = array_diff($appliedPatches, $patchChain);
+			}
 
 			if (count($appliedPatches))
 			{
@@ -53,29 +68,47 @@ class ResetController extends AbstractController
 				{
 					try
 					{
-						$pullModel->revert($patch->id);
+						$pullModel->revertWithGitHub($patch);
 					}
 					catch (\RuntimeException $e)
 					{
 						$revertErrored = true;
 					}
 				}
+			}
 
-				// If we errored out reverting patches, we'll need to truncate the table
-				if ($revertErrored)
+			if (count($patchChain))
+			{
+				$revertErrored = false;
+
+				// Let's try to cleanly revert all applied patches with ci
+				foreach ($patchChain as $patch)
 				{
 					try
 					{
-						$testsModel->truncateTable();
+						$pullModel->revertWithCIServer($patch);
 					}
 					catch (\RuntimeException $e)
 					{
-						$hasErrors = true;
-
-						$this->getApplication()->enqueueMessage(
-							Text::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_PULLS_TABLE', $e->getMessage()), 'error'
-						);
+						$revertErrored = true;
 					}
+				}
+			}
+
+			// If we errored out reverting patches, we'll need to truncate the table
+			if ($revertErrored)
+			{
+				try
+				{
+					$testsModel->truncateTable();
+				}
+				catch (\RuntimeException $e)
+				{
+					$hasErrors = true;
+
+					$this->getApplication()->enqueueMessage(
+						Text::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_PULLS_TABLE', $e->getMessage()), 'error'
+					);
 				}
 			}
 
