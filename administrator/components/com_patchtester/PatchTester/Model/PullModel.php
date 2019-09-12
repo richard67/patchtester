@@ -618,13 +618,13 @@ class PullModel extends AbstractModel
 		$patchChain = $this->getLastChain();
 
 		// Allow only reverts in order of the patch chain
-		if ($patchChain[0]->insert_id != $id)
+		if ($patchChain->insert_id != $id)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain[0]->pull_id));
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain->pull_id));
 		}
 		else
 		{
-			$this->removeLastChain($patchChain[0]->insert_id);
+			$this->removeLastChain($patchChain->insert_id);
 		}
 
 		// We don't want to restore files from an older version
@@ -910,14 +910,15 @@ class PullModel extends AbstractModel
 
 		$appliedByGit = $db->setQuery(
 			$db->getQuery(true)
-				->select('pulls.id, pulls.pull_id')
-				->from('#__patchtester_chain chain')
-				->leftJoin('#__patchtester_pulls pulls', 'chain.id != pulls.id')
-		)->loadObject();
+				->select('tests.id, tests.pull_id')
+				->from('#__patchtester_tests tests')
+				->leftJoin('#__patchtester_chain chain', 'tests.id = chain.insert_id')
+				->where('chain.insert_id IS NULL')
+		)->loadObjectList('pull_id');
 
 		$appliedByCI = $this->getPatchChain();
 
-		return [$appliedByGit, $appliedByCI];
+		return ["git" => $appliedByGit, "ci" => $appliedByCI];
 	}
 
 	/**
