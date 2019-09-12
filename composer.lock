@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "35e372f08cd218b7040fd37d8e7dcaeb",
+    "content-hash": "74b98490277fecd02473d802a0fe279a",
     "packages": [],
     "packages-dev": [
         {
@@ -375,12 +375,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/joomla-projects/crowdin-sync.git",
-                "reference": "8a61f12161b30ff4aa0402ad0dccd599b38714af"
+                "reference": "c1db9d2186a273b66297f4fbf239bbc06b70a9fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/joomla-projects/crowdin-sync/zipball/8a61f12161b30ff4aa0402ad0dccd599b38714af",
-                "reference": "8a61f12161b30ff4aa0402ad0dccd599b38714af",
+                "url": "https://api.github.com/repos/joomla-projects/crowdin-sync/zipball/c1db9d2186a273b66297f4fbf239bbc06b70a9fb",
+                "reference": "c1db9d2186a273b66297f4fbf239bbc06b70a9fb",
                 "shasum": ""
             },
             "require": {
@@ -401,7 +401,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "GPL-2.0+"
+                "GPL-2.0-or-later"
             ],
             "description": "CLI application to synchronize a project with Crowdin",
             "homepage": "https://github.com/joomla-projects/crowdin-sync",
@@ -409,7 +409,7 @@
                 "crowdin",
                 "joomla"
             ],
-            "time": "2019-03-29T12:07:12+00:00"
+            "time": "2019-09-10T14:24:41+00:00"
         },
         {
             "name": "joomla/filter",
@@ -1067,7 +1067,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^5.3.10|^7.0"
+        "php": "^7.0",
+        "ext-json": "*"
     },
     "platform-dev": {
         "php": "^5.6|^7.0"
