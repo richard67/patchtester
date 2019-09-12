@@ -88,7 +88,7 @@ abstract class Helper
 		$options->set('folder.backups', JPATH_COMPONENT . '/backups');
 
 		// Set full url for addressing the file
-		$options->set('zip.url', $options->get('server.url') . '/%s/' . $options->get('zip.name'));
+		$options->set('zip.url', $options->get('server.url') . '/artifacts/joomla-cms/4.0-dev/%s/patchtester/' . $options->get('zip.name'));
 
 		return $options;
 	}
