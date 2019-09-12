@@ -208,7 +208,6 @@ class PullModel extends AbstractModel
 		$tempPath                 = $ciSettings->get('folder.temp') . "/$id";
 		$backupsPath              = $ciSettings->get('folder.backups') . "/$id";
 
-		$patchChainPath           = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
 		$delLogPath               = $tempPath . '/' . $ciSettings->get('zip.log.name');
 		$zipPath                  = $tempPath . '/' . $ciSettings->get('zip.name');
 
@@ -319,17 +318,7 @@ class PullModel extends AbstractModel
 		$lastInserted = $this->saveAppliedPatch($id, $files, $sha);
 
 		// Write or create patch chain for correct order of patching
-		if (!file_exists($patchChainPath) || filesize($patchChainPath) === 0)
-		{
-			File::write($patchChainPath, json_encode([["id" => $lastInserted, "pull_id" => $id]]));
-		}
-		else
-		{
-			// Remove any from php set EOL in log file, add id and rewrite file
-			$patchChain = json_decode(file_get_contents($patchChainPath));
-			$patchChain[] = ["id" => $lastInserted, "pull_id" => $id];
-			File::write($patchChainPath, json_encode($patchChain));
-		}
+		$this->appendPatchChain($lastInserted, $id);
 
 		// Change the media version
 		$version = new Version;
@@ -626,18 +615,16 @@ class PullModel extends AbstractModel
 		$testRecord = $this->getTestRecord($id);
 
 		// Get PatchChain as array, remove any EOL set by php
-		$patchChainPath = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
-		$patchChain     = array_reverse(json_decode(file_get_contents($patchChainPath)));
+		$patchChain = $this->getLastChain();
 
 		// Allow only reverts in order of the patch chain
-		if ($patchChain[0]->id != $id)
+		if ($patchChain[0]->insert_id != $id)
 		{
 			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain[0]->pull_id));
 		}
 		else
 		{
-			array_shift($patchChain);
-			File::write($patchChainPath, json_encode(array_reverse($patchChain)));
+			$this->removeLastChain($patchChain[0]->insert_id);
 		}
 
 		// We don't want to restore files from an older version
@@ -866,5 +853,113 @@ class PullModel extends AbstractModel
 				->from('#__patchtester_tests')
 				->where('id = ' . (int) $id)
 		)->loadObject();
+	}
+
+	/**
+	 * Retrieves a list of patches in chain
+	 *
+	 * @return  mixed
+	 *
+	 * @since   3.0
+	 */
+	private function getPatchChain()
+	{
+		$db = $this->getDb();
+
+		$db->setQuery(
+			$db->getQuery(true)
+				->select('*')
+				->from($db->quoteName('#__patchtester_chain'))
+				->order('id DESC')
+		);
+
+		return $db->loadObjectList('pull_id');
+	}
+
+	/**
+	 * Returns the last value of the ci patch chain
+	 *
+	 * @return  stdClass $chain  last chain of the table
+	 *
+	 * @since   3.0.0
+	 */
+	private function getLastChain()
+	{
+		$db = $this->getDb();
+
+		return $db->setQuery(
+			$db->getQuery(true)
+				->select('*')
+				->from('#__patchtester_chain')
+				->order('id DESC'), 0, 1
+		)->loadObject();
+	}
+
+	/**
+	 * Returns a two dimensional array with applied patches
+	 * by the github or ci procedure
+	 *
+	 * @return  array   two-dimensional array with github patches
+	 *                  and ci patches
+	 *
+	 * @since   3.0.0
+	 */
+	public function getPatchesDividedInProcs()
+	{
+		$db = $this->getDb();
+
+		$appliedByGit = $db->setQuery(
+			$db->getQuery(true)
+				->select('pulls.id, pulls.pull_id')
+				->from('#__patchtester_chain chain')
+				->leftJoin('#__patchtester_pulls pulls', 'chain.id != pulls.id')
+		)->loadObject();
+
+		$appliedByCI = $this->getPatchChain();
+
+		return [$appliedByGit, $appliedByCI];
+	}
+
+	/**
+	 * Adds a value to the patch chain in the database
+	 *
+	 * @param   integer  $insertId  ID of the patch in the database
+	 * @param   integer  $pullId    ID of the pull request
+	 *
+	 * @return  integer  $insertId  last inserted element
+	 *
+	 * @since   3.0.0
+	 */
+	private function appendPatchChain($insertId, $pullId)
+	{
+		$record = (object) array(
+			'insert_id'       => $insertId,
+			'pull_id'         => $pullId,
+		);
+
+		$db = $this->getDb();
+
+		$db->insertObject('#__patchtester_chain', $record);
+		return $db->insertid();
+	}
+
+	/**
+	 * Removes the last value of the chain
+	 *
+	 * @param   integer  $insertId  ID of the patch in the database
+	 *
+	 * @return  void
+	 *
+	 * @since   3.0.0
+	 */
+	private function removeLastChain($insertId)
+	{
+		$db = $this->getDb();
+
+		$db->setQuery(
+			$db->getQuery(true)
+				->delete('#__patchtester_chain')
+				->where('insert_id = ' . (int) $insertId)
+		)->execute();
 	}
 }

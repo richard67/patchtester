@@ -13,7 +13,6 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\Filesystem\File;
-use PatchTester\Helper;
 use PatchTester\Model\PullModel;
 use PatchTester\Model\PullsModel;
 use PatchTester\Model\TestsModel;
@@ -42,25 +41,10 @@ class ResetController extends AbstractController
 			$pullsModel = new PullsModel($this->context, null, Factory::getDbo());
 			$testsModel = new TestsModel(null, Factory::getDbo());
 
-			// Get the CIServer Registry
-			$ciSettings = Helper::initializeCISettings();
-
-			// Get PatchChain as array, remove any EOL set by php
-			$patchChainPath = $ciSettings->get('folder.backups') . '/' . $ciSettings->get('zip.chain.name');
-			$patchChain     = array_reverse(json_decode(file_get_contents($patchChainPath)));
-
 			// Check the applied patches in the database first
-			$appliedPatches = $testsModel->getAppliedPatches();
+			$appliedPatches = $pullModel->getPatchesDividedInProcs();
 
-			if (count($patchChain) && count($appliedPatches))
-			{
-				// Get only the pull_id and remove all occurrences with patchChain
-				$appliedPatches = array_map(function($patch) { return $patch->id; }, $appliedPatches);
-				$patchChain = array_map(function($patch) { return $patch->id; }, $patchChain);
-				$appliedPatches = array_diff($appliedPatches, $patchChain);
-			}
-
-			if (count($appliedPatches))
+			if (count($appliedPatches[0]))
 			{
 				$revertErrored = false;
 
@@ -69,7 +53,7 @@ class ResetController extends AbstractController
 				{
 					try
 					{
-						$pullModel->revertWithGitHub($patch);
+						$pullModel->revertWithGitHub($patch->id);
 					}
 					catch (\RuntimeException $e)
 					{
@@ -78,16 +62,16 @@ class ResetController extends AbstractController
 				}
 			}
 
-			if (count($patchChain))
+			if (count($appliedPatches[1]))
 			{
 				$revertErrored = false;
 
 				// Let's try to cleanly revert all applied patches with ci
-				foreach ($patchChain as $patch)
+				foreach ($appliedPatches as $patch)
 				{
 					try
 					{
-						$pullModel->revertWithCIServer($patch);
+						$pullModel->revertWithCIServer($patch->id);
 					}
 					catch (\RuntimeException $e)
 					{
