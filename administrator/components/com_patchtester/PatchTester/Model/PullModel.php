@@ -156,8 +156,7 @@ class PullModel extends AbstractModel
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if ((bool) $params->get('ci_switch', 1) && $params->get('repo', 'joomla-cms') === 'joomla-cms'
-			&& $params->get('org', 'joomla') === 'joomla')
+		if ((bool) $params->get('ci_switch', 1))
 		{
 			return $this->applyWithCIServer($id);
 		}
@@ -586,8 +585,7 @@ class PullModel extends AbstractModel
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if ((bool) $params->get('ci_switch', 1) && $params->get('repo', 'joomla-cms') === 'joomla-cms'
-			&& $params->get('org', 'joomla') === 'joomla')
+		if ((bool) $params->get('ci_switch', 1) || $id === $this->getPatchChain($id)->insert_id)
 		{
 			return $this->revertWithCIServer($id);
 		}
@@ -615,7 +613,7 @@ class PullModel extends AbstractModel
 		$testRecord = $this->getTestRecord($id);
 
 		// Get PatchChain as array, remove any EOL set by php
-		$patchChain = $this->getLastChain();
+		$patchChain = $this->getPatchChain(-1);
 
 		// Allow only reverts in order of the patch chain
 		if ($patchChain->insert_id != $id)
@@ -862,7 +860,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @since   3.0
 	 */
-	private function getPatchChain()
+	private function getPatchChains()
 	{
 		$db = $this->getDb();
 
@@ -877,22 +875,39 @@ class PullModel extends AbstractModel
 	}
 
 	/**
-	 * Returns the last value of the ci patch chain
+	 * Returns a chain by specific value, returns the last
+	 * element on $id = -1 and the first on $id = null
+	 *
+	 * @param   integer  $id    specific id of a pull
 	 *
 	 * @return  stdClass $chain  last chain of the table
 	 *
 	 * @since   3.0.0
 	 */
-	private function getLastChain()
+	private function getPatchChain($id = null)
 	{
-		$db = $this->getDb();
+		$db     = $this->getDb();
 
-		return $db->setQuery(
-			$db->getQuery(true)
-				->select('*')
-				->from('#__patchtester_chain')
-				->order('id DESC'), 0, 1
-		)->loadObject();
+		$query  = $db->getQuery(true)
+			->select('*')
+			->from('#__patchtester_chain');
+
+		if (!is_null($id) && $id !== -1)
+		{
+			$query = $query->where('insert_id =' . (int) $id);
+		}
+
+		if ($id === -1)
+		{
+			$query = $query->order('id DESC');
+		}
+
+		if (is_null($id))
+		{
+			$query = $query->order('id ASC');
+		}
+
+		return $db->setQuery($query,0,1)->loadObject();
 	}
 
 	/**
@@ -916,7 +931,7 @@ class PullModel extends AbstractModel
 				->where('chain.insert_id IS NULL')
 		)->loadObjectList('pull_id');
 
-		$appliedByCI = $this->getPatchChain();
+		$appliedByCI = $this->getPatchChains();
 
 		return ["git" => $appliedByGit, "ci" => $appliedByCI];
 	}
