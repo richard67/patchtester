@@ -185,7 +185,7 @@ class PullModel extends AbstractModel
 		// Get the Github object
 		$github = Helper::initializeGithub();
 
-		// retrieve pullData for sha later on.
+		// Retrieve pullData for sha later on.
 		try
 		{
 			$pull = $this->retrieveGitHubData($github, $id);
@@ -244,20 +244,20 @@ class PullModel extends AbstractModel
 			throw new \RuntimeException(Text::_('COM_PATCHTESTER_ZIP_EXTRACT_FAILED'));
 		}
 
-		// remove zip to avoid get listing afterwards
+		// Remove zip to avoid get listing afterwards
 		File::delete($zipPath);
 
-		// get files from deleted_logs
+		// Get files from deleted_logs
 		$deletedFiles = (file($delLogPath) ? file($delLogPath) : []);
 		$deletedFiles = array_map('trim', $deletedFiles);
 
-		if(file_exists($delLogPath))
+		if (file_exists($delLogPath))
 		{
-			// remove deleted_logs to avoid get listing afterwards
+			// Remove deleted_logs to avoid get listing afterwards
 			File::delete($delLogPath);
 		}
 
-		// retrieve all files and merge them into one array
+		// Retrieve all files and merge them into one array
 		$files = Folder::files($tempPath, null, true, true);
 		$files = str_replace(Path::clean("$tempPath\\"), '', $files);
 		$files = array_merge($files, $deletedFiles);
@@ -273,7 +273,7 @@ class PullModel extends AbstractModel
 				array_pop($filePath);
 				$filePath = implode("\\", $filePath);
 
-				// deleted_logs returns files as well as folder, if value is folder, unset and skip
+				// Deleted_logs returns files as well as folder, if value is folder, unset and skip
 				if (is_dir(JPATH_ROOT . "/$file"))
 				{
 					unset($files[$key]);
@@ -302,7 +302,7 @@ class PullModel extends AbstractModel
 					File::copy("$tempPath/$file", JPATH_ROOT . "/$file");
 				}
 			}
-			catch(\RuntimeException $e)
+			catch (\RuntimeException $e)
 			{
 				Folder::delete($tempPath);
 
@@ -487,8 +487,8 @@ class PullModel extends AbstractModel
 	/**
 	 * Patches the code with the supplied pull request
 	 *
-	 * @param   GitHub      $github  github object
-	 * @param   integer     $id      Id of the pull request
+	 * @param   GitHub   $github  github object
+	 * @param   integer  $id      Id of the pull request
 	 *
 	 * @return  Response
 	 *
@@ -651,7 +651,6 @@ class PullModel extends AbstractModel
 				// Delete file from root of it exists
 				if (file_Exists(JPATH_ROOT . "/$file"))
 				{
-
 					File::delete(JPATH_ROOT . "/$file");
 
 					// Move from backup, if it exists there
@@ -677,7 +676,7 @@ class PullModel extends AbstractModel
 					File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
 				}
 			}
-			catch(\RuntimeException $e)
+			catch (\RuntimeException $e)
 			{
 				throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FAILED_REVERT_PATCH', $file, $e->getMessage()));
 			}
@@ -837,7 +836,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @param   integer  $id  ID of the record
 	 *
-	 * @return  stdClass $testRecord  The record looking for
+	 * @return  stdClass  $testRecord  The record looking for
 	 *
 	 * @since   3.0.0
 	 */
@@ -878,9 +877,9 @@ class PullModel extends AbstractModel
 	 * Returns a chain by specific value, returns the last
 	 * element on $id = -1 and the first on $id = null
 	 *
-	 * @param   integer  $id    specific id of a pull
+	 * @param   integer  $id  specific id of a pull
 	 *
-	 * @return  stdClass $chain  last chain of the table
+	 * @return  stdClass  $chain  last chain of the table
 	 *
 	 * @since   3.0.0
 	 */
@@ -907,7 +906,7 @@ class PullModel extends AbstractModel
 			$query = $query->order('id ASC');
 		}
 
-		return $db->setQuery($query,0,1)->loadObject();
+		return $db->setQuery($query, 0, 1)->loadObject();
 	}
 
 	/**
@@ -956,6 +955,7 @@ class PullModel extends AbstractModel
 		$db = $this->getDb();
 
 		$db->insertObject('#__patchtester_chain', $record);
+
 		return $db->insertid();
 	}
 

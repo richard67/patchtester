@@ -64,7 +64,6 @@ class ResetController extends AbstractController
 
 			if (count($appliedPatches["ci"]))
 			{
-
 				$revertErrored = false;
 
 				// Let's try to cleanly revert all applied patches with ci
