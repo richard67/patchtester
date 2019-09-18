@@ -109,7 +109,7 @@
 				label="COM_PATCHTESTER_FIELD_CI_SERVER_NAME"
 				description="COM_PATCHTESTER_FIELD_CI_SERVER_NAME_DESC"
 				autocomplete="off"
-				default="https://ci.joomla.org"
+				default="https://ci.joomla.org:444"
 		/>
 
 		<field

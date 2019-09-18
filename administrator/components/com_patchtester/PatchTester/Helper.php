@@ -77,7 +77,7 @@ abstract class Helper
 		$options = new Registry;
 
 		// Set CI server address for the request
-		$options->set('server.url', $params->get('ci_server', 'https://ci.joomla.org'));
+		$options->set('server.url', $params->get('ci_server', 'https://ci.joomla.org:444'));
 
 		// Set name of the zip archive
 		$options->set('zip.name', 'build.zip');
@@ -88,7 +88,7 @@ abstract class Helper
 		$options->set('folder.backups', JPATH_COMPONENT . '/backups');
 
 		// Set full url for addressing the file
-		$options->set('zip.url', $options->get('server.url') . '/artifacts/joomla-cms/4.0-dev/%s/patchtester/' . $options->get('zip.name'));
+		$options->set('zip.url', $options->get('server.url') . '/artifacts/joomla/joomla-cms/4.0-dev/%s/patchtester/' . $options->get('zip.name'));
 
 		return $options;
 	}
