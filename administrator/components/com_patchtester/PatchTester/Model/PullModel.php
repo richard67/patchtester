@@ -156,7 +156,7 @@ class PullModel extends AbstractModel
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if ((bool) $params->get('ci_switch', 1))
+		if (version_compare(JVERSION, "4", "ge") && (bool) $params->get('ci_switch', 1))
 		{
 			return $this->applyWithCIServer($id);
 		}
@@ -365,6 +365,11 @@ class PullModel extends AbstractModel
 		}
 
 		$parsedFiles = $this->parseFileList($files);
+
+		if (!count($parsedFiles))
+		{
+			return false;
+		}
 
 		foreach ($parsedFiles as $file)
 		{
@@ -585,7 +590,7 @@ class PullModel extends AbstractModel
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if ((bool) $params->get('ci_switch', 1) || $id === $this->getPatchChain($id)->insert_id)
+		if (version_compare(JVERSION, "4", "ge") && ((bool) $params->get('ci_switch', 1) || $id === $this->getPatchChain($id)->insert_id))
 		{
 			return $this->revertWithCIServer($id);
 		}
