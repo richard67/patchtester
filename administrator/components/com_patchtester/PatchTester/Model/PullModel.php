@@ -937,7 +937,7 @@ class PullModel extends AbstractModel
 
 		$appliedByCI = $this->getPatchChains();
 
-		return ["git" => $appliedByGit, "ci" => $appliedByCI];
+		return array('git' => $appliedByGit, 'ci' => $appliedByCI);
 	}
 
 	/**

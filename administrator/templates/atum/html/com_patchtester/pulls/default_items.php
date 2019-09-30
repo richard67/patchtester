@@ -17,56 +17,60 @@ foreach ($this->items as $i => $item) :
 		$status = ' class="table-active"';
 	endif;
 	?>
-    <tr<?php echo $status; ?>>
-        <th scope="row" class="text-center">
+	<tr<?php echo $status; ?>>
+		<th scope="row" class="text-center">
 			<?php echo $item->pull_id; ?>
-        </th>
-        <td>
-            <span><?php echo $this->escape($item->title); ?></span>
-            <div role="tooltip" id="tip<?php echo $i; ?>">
+		</th>
+		<td>
+			<span><?php echo $this->escape($item->title); ?></span>
+			<div role="tooltip" id="tip<?php echo $i; ?>">
 				<?php echo $this->escape($item->description); ?>
-            </div>
-            <div class="row">
-                <div class="col-md-auto">
-                    <a class="badge badge-info" href="<?php echo $item->pull_url; ?>" target="_blank">
+			</div>
+			<div class="row">
+				<div class="col-md-auto">
+					<a class="badge badge-info" href="<?php echo $item->pull_url; ?>" target="_blank">
 						<?php echo Text::_('COM_PATCHTESTER_VIEW_ON_GITHUB'); ?>
-                    </a>
-                </div>
-                <div class="col-md-auto">
-                    <a class="badge badge-info" href="https://issues.joomla.org/tracker/<?php echo $this->trackerAlias; ?>/<?php echo $item->pull_id; ?>" target="_blank">
+					</a>
+				</div>
+				<div class="col-md-auto">
+					<a class="badge badge-info"
+					   href="https://issues.joomla.org/tracker/<?php echo $this->trackerAlias; ?>/<?php echo $item->pull_id; ?>"
+					   target="_blank">
 						<?php echo Text::_('COM_PATCHTESTER_VIEW_ON_JOOMLA_ISSUE_TRACKER'); ?>
-                    </a>
-                </div>
+					</a>
+				</div>
 				<?php if ($item->applied) : ?>
-                    <div class="col-md-auto">
-                        <span class="badge badge-info"><?php echo Text::sprintf('COM_PATCHTESTER_APPLIED_COMMIT_SHA', substr($item->sha, 0, 10)); ?></span>
-                    </div>
+					<div class="col-md-auto">
+						<span class="badge badge-info"><?php echo Text::sprintf('COM_PATCHTESTER_APPLIED_COMMIT_SHA', substr($item->sha, 0, 10)); ?></span>
+					</div>
 				<?php endif; ?>
-            </div>
-        </td>
-        <td class="d-none d-md-table-cell text-center">
+			</div>
+		</td>
+		<td class="d-none d-md-table-cell text-center">
 			<?php echo $this->escape($item->branch); ?>
-        </td>
-        <td class="d-none d-md-table-cell text-center">
+		</td>
+		<td class="d-none d-md-table-cell text-center">
 			<?php if ($item->is_rtc) : ?>
-                <span class="badge badge-success"><?php echo Text::_('JYES'); ?></span>
+				<span class="badge badge-success"><?php echo Text::_('JYES'); ?></span>
 			<?php else : ?>
-                <span class="badge badge-secondary"><?php echo Text::_('JNO'); ?></span>
+				<span class="badge badge-secondary"><?php echo Text::_('JNO'); ?></span>
 			<?php endif; ?>
-        </td>
-        <td class="text-center">
+		</td>
+		<td class="text-center">
 			<?php if ($item->applied) : ?>
-                <span class="badge badge-success"><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></span>
+				<span class="badge badge-success"><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></span>
 			<?php else : ?>
-                <span class="badge badge-secondary"><?php echo Text::_('COM_PATCHTESTER_NOT_APPLIED'); ?></span>
+				<span class="badge badge-secondary"><?php echo Text::_('COM_PATCHTESTER_NOT_APPLIED'); ?></span>
 			<?php endif; ?>
-        </td>
-        <td class="text-center">
+		</td>
+		<td class="text-center">
 			<?php if ($item->applied) : ?>
-                <button type="button" class="btn btn-sm btn-success submitPatch" data-task="revert-<?php echo (int) $item->applied; ?>"><?php echo Text::_('COM_PATCHTESTER_REVERT_PATCH'); ?></button>
+				<button type="button" class="btn btn-sm btn-success submitPatch"
+						data-task="revert-<?php echo (int)$item->applied; ?>"><?php echo Text::_('COM_PATCHTESTER_REVERT_PATCH'); ?></button>
 			<?php else : ?>
-                <button type="button" class="btn btn-sm btn-primary submitPatch" data-task="apply-<?php echo (int) $item->pull_id; ?>"><?php echo Text::_('COM_PATCHTESTER_APPLY_PATCH'); ?></button>
+				<button type="button" class="btn btn-sm btn-primary submitPatch"
+						data-task="apply-<?php echo (int)$item->pull_id; ?>"><?php echo Text::_('COM_PATCHTESTER_APPLY_PATCH'); ?></button>
 			<?php endif; ?>
-        </td>
-    </tr>
+		</td>
+	</tr>
 <?php endforeach;

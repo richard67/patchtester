@@ -44,12 +44,12 @@ class ResetController extends AbstractController
 			// Check the applied patches in the database first
 			$appliedPatches = $pullModel->getPatchesDividedInProcs();
 
-			if (count($appliedPatches["git"]))
+			if (count($appliedPatches['git']))
 			{
 				$revertErrored = false;
 
 				// Let's try to cleanly revert all applied patches
-				foreach ($appliedPatches["git"] as $patch)
+				foreach ($appliedPatches['git'] as $patch)
 				{
 					try
 					{
@@ -62,12 +62,12 @@ class ResetController extends AbstractController
 				}
 			}
 
-			if (count($appliedPatches["ci"]))
+			if (count($appliedPatches['ci']))
 			{
 				$revertErrored = false;
 
 				// Let's try to cleanly revert all applied patches with ci
-				foreach ($appliedPatches["ci"] as $patch)
+				foreach ($appliedPatches['ci'] as $patch)
 				{
 					try
 					{
