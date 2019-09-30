@@ -248,7 +248,7 @@ class PullModel extends AbstractModel
 		File::delete($zipPath);
 
 		// Get files from deleted_logs
-		$deletedFiles = (file($delLogPath) ? file($delLogPath) : []);
+		$deletedFiles = (file($delLogPath) ? file($delLogPath) : array());
 		$deletedFiles = array_map('trim', $deletedFiles);
 
 		if (file_exists($delLogPath))
