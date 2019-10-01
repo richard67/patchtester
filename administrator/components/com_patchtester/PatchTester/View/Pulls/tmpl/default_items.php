@@ -68,11 +68,11 @@ foreach ($this->items as $i => $item) :
 		<td class="center">
 			<?php if ($item->applied) : ?>
 				<button type="button" class="btn btn-sm btn-success submitPatch"
-						data-task="revert-<?php echo (int)$item->applied; ?>"><?php echo Text::_('COM_PATCHTESTER_REVERT_PATCH'); ?></button>
+						data-task="revert-<?php echo (int) $item->applied; ?>"><?php echo Text::_('COM_PATCHTESTER_REVERT_PATCH'); ?></button>
 				<br/>
 			<?php else : ?>
 				<button type="button" class="btn btn-sm btn-primary submitPatch"
-						data-task="apply-<?php echo (int)$item->pull_id; ?>"><?php echo Text::_('COM_PATCHTESTER_APPLY_PATCH'); ?></button>
+						data-task="apply-<?php echo (int) $item->pull_id; ?>"><?php echo Text::_('COM_PATCHTESTER_APPLY_PATCH'); ?></button>
 			<?php endif; ?>
 		</td>
 	</tr>
