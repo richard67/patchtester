@@ -9,10 +9,10 @@ if (typeof Joomla === 'undefined') {
     throw new Error('PatchTester JavaScript requires the Joomla core JavaScript API')
 }
 
-document.addEventListener("DOMContentLoaded", (event) => {
+document.addEventListener("DOMContentLoaded", function (event) {
 
-    let submitPatch =   document.querySelectorAll(".submitPatch");
-    let pullIdForm  =   document.querySelector("#pull_id");
+    var submitPatch = document.querySelectorAll(".submitPatch");
+    var pullIdForm  = document.querySelector("#pull_id");
 
     /**
      * EventListener which listens on submitPatch Button,
@@ -21,12 +21,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
      *
      * @param {Event} event
      */
-    submitPatch.forEach((element) => element.addEventListener("click", (event) => {
-        let currentTarget   = event.currentTarget,
-            data            = currentTarget.dataset.task.split("-"),
-            task            = data[0];
+    submitPatch.forEach(function (element) {
+        element.addEventListener("click", function (event) {
+            var currentTarget = event.currentTarget;
+            var data          = currentTarget.dataset.task.split("-");
 
-        pullIdForm.value = data[1];
-        Joomla.submitform(task);
-    }));
+            pullIdForm.value = data[1];
+            Joomla.submitform(data[0]);
+        });
+    });
 });
