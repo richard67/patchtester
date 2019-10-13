@@ -92,15 +92,15 @@ $filterRtc     = $this->escape($this->state->get('filter.rtc'));
 						<div class="js-stools-field-filter">
 							<select name="filter_applied" class="custom-select" onchange="this.form.submit();">
 								<option value=""><?php echo Text::_('COM_PATCHTESTER_FILTER_APPLIED_PATCHES'); ?></option>
-								<option value="yes"<?php if ($filterApplied == 'yes') echo ' selected="selected"'; ?>><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></option>
-								<option value="no"<?php if ($filterApplied == 'no') echo ' selected="selected"'; ?>><?php echo Text::_('COM_PATCHTESTER_NOT_APPLIED'); ?></option>
+								<option value="yes"<?php echo $filterApplied == 'yes' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></option>
+								<option value="no"<?php echo $filterApplied == 'no' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_NOT_APPLIED'); ?></option>
 							</select>
 						</div>
 						<div class="js-stools-field-filter">
 							<select name="filter_rtc" class="custom-select" onchange="this.form.submit();">
 								<option value=""><?php echo Text::_('COM_PATCHTESTER_FILTER_RTC_PATCHES'); ?></option>
-								<option value="yes"<?php if ($filterRtc == 'yes') echo ' selected="selected"'; ?>><?php echo Text::_('COM_PATCHTESTER_RTC'); ?></option>
-								<option value="no"<?php if ($filterRtc == 'no') echo ' selected="selected"'; ?>><?php echo Text::_('COM_PATCHTESTER_NOT_RTC'); ?></option>
+								<option value="yes"<?php echo $filterRtc == 'yes' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_RTC'); ?></option>
+								<option value="no"<?php echo $filterRtc == 'no' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_NOT_RTC'); ?></option>
 							</select>
 						</div>
 						<div class="js-stools-field-filter">

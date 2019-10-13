@@ -95,7 +95,7 @@ class PullsModel extends AbstractModel
 		}
 
 		// Load the list items and add the items to the internal cache.
-		$this->cache[$store] = $this->_getList($this->_getListQuery(), $this->getStart(), $this->getState()->get('list.limit'));
+		$this->cache[$store] = $this->getList($this->getListQueryCache(), $this->getStart(), $this->getState()->get('list.limit'));
 
 		return $this->cache[$store];
 	}
@@ -293,7 +293,7 @@ class PullsModel extends AbstractModel
 		}
 
 		// Load the total and add the total to the internal cache.
-		$this->cache[$store] = (int) $this->_getListCount($this->_getListQuery());
+		$this->cache[$store] = (int) $this->getListCount($this->getListQueryCache());
 
 		return $this->cache[$store];
 	}
@@ -452,7 +452,7 @@ class PullsModel extends AbstractModel
 	 * @since   2.0
 	 * @throws  RuntimeException
 	 */
-	protected function _getList($query, $limitstart = 0, $limit = 0)
+	protected function getList($query, $limitstart = 0, $limit = 0)
 	{
 		return $this->getDb()->setQuery($query, $limitstart, $limit)->loadObjectList();
 	}
@@ -466,7 +466,7 @@ class PullsModel extends AbstractModel
 	 *
 	 * @since   2.0
 	 */
-	protected function _getListCount($query)
+	protected function getListCount($query)
 	{
 		// Use fast COUNT(*) on JDatabaseQuery objects if there no GROUP BY or HAVING clause:
 		if ($query instanceof \JDatabaseQuery && $query->type == 'select' && $query->group === null && $query->having === null)
@@ -494,7 +494,7 @@ class PullsModel extends AbstractModel
 	 *
 	 * @since   2.0
 	 */
-	protected function _getListQuery()
+	protected function getListQueryCache()
 	{
 		// Capture the last store id used.
 		static $lastStoreId;

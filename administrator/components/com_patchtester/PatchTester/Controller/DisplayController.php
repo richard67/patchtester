@@ -100,18 +100,19 @@ class DisplayController extends AbstractController
 	protected function initializeState(AbstractModel $model)
 	{
 		$state = parent::initializeState($model);
+		$app = $this->getApplication();
 
 		// Load the filter state.
-		$state->set('filter.search', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', ''));
-		$state->set('filter.applied', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.applied', 'filter_applied', ''));
-		$state->set('filter.branch', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.branch', 'filter_branch', ''));
-		$state->set('filter.rtc', $this->getApplication()->getUserStateFromRequest($this->context . '.filter.rtc', 'filter_rtc', ''));
+		$state->set('filter.search', $app->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', ''));
+		$state->set('filter.applied', $app->getUserStateFromRequest($this->context . '.filter.applied', 'filter_applied', ''));
+		$state->set('filter.branch', $app->getUserStateFromRequest($this->context . '.filter.branch', 'filter_branch', ''));
+		$state->set('filter.rtc', $app->getUserStateFromRequest($this->context . '.filter.rtc', 'filter_rtc', ''));
 
 		// Pre-fill the limits.
-		$limit = $this->getApplication()->getUserStateFromRequest('global.list.limit', 'limit', $this->getApplication()->get('list_limit', 20), 'uint');
+		$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit', 20), 'uint');
 		$state->set('list.limit', $limit);
 
-		$fullOrdering = $this->getApplication()->getUserStateFromRequest($this->context . '.fullorder', 'list_fullordering', $this->defaultFullOrdering);
+		$fullOrdering = $app->getUserStateFromRequest($this->context . '.fullorder', 'list_fullordering', $this->defaultFullOrdering);
 
 		$orderingParts = explode(' ', $fullOrdering);
 
@@ -140,7 +141,7 @@ class DisplayController extends AbstractController
 			$state->set('list.ordering', $ordering);
 		}
 
-		$value = $this->getApplication()->getUserStateFromRequest($this->context . '.limitstart', 'limitstart', 0);
+		$value = $app->getUserStateFromRequest($this->context . '.limitstart', 'limitstart', 0);
 		$limitstart = ($limit != 0 ? (floor($value / $limit) * $limit) : 0);
 		$state->set('list.start', $limitstart);
 
