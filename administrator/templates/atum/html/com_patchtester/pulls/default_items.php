@@ -56,7 +56,7 @@ foreach ($this->items as $i => $item) :
 	</td>
 	<td class="text-center">
 		<?php if ($item->applied) : ?>
-            <span class="badge badge-success"><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></span>
+			<span class="badge badge-success"><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></span>
 		<?php else : ?>
 			<span class="badge badge-secondary"><?php echo Text::_('COM_PATCHTESTER_NOT_APPLIED'); ?></span>
 		<?php endif; ?>

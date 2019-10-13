@@ -247,7 +247,11 @@ class PullModel extends AbstractModel
 					}
 					catch (UnexpectedResponse $e)
 					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
+						throw new \RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()),
+							$e->getCode(),
+							$e
+						);
 					}
 
 					break;
@@ -293,7 +297,9 @@ class PullModel extends AbstractModel
 				case 'renamed':
 					if (!File::delete(Path::clean(JPATH_ROOT . '/' . $file->originalFile)))
 					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->originalFile));
+						throw new \RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->originalFile)
+						);
 					}
 
 					if (!File::write(Path::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
