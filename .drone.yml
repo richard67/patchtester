@@ -25,3 +25,8 @@ steps:
       - echo $(date)
       - ./administrator/components/com_patchtester/vendor/bin/crowdin --upload
       - echo $(date)
+---
+kind: signature
+hmac: 2ee0c3d69f18776a37b86955aac82f5c9a37194dd03e9f8fa767d2a5339f9735
+
+...
