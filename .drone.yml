@@ -21,12 +21,17 @@ steps:
 
   - name: crowdin
     image: joomlaprojects/docker-images:php7.2
+    environment:
+      CROWDIN_API_KEY:
+        from_secret: CROWDIN_API_KEY
     commands:
       - echo $(date)
       - ./administrator/components/com_patchtester/vendor/bin/crowdin --upload
       - echo $(date)
+    when:
+      event: push
 ---
 kind: signature
-hmac: 2ee0c3d69f18776a37b86955aac82f5c9a37194dd03e9f8fa767d2a5339f9735
+hmac: db121d6418e6f0702b311cce34d0a0dd12a4b88814138a4d1d02c1e6189e9d43
 
 ...
