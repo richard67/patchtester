@@ -7,7 +7,7 @@
 	<license>GNU General Public License version 2 or later</license>
 	<authorEmail>admin@joomla.org</authorEmail>
 	<authorUrl>https://www.joomla.org</authorUrl>
-	<version>4.0.0-beta1</version>
+	<version>4.0.0-beta2</version>
 	<description>COM_PATCHTESTER_XML_DESCRIPTION</description>
 	<scriptfile>script.php</scriptfile>
 	<install>
