@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension type="component" version="3.6" method="upgrade">
+<extension type="component" version="4.0" method="upgrade">
 	<name>com_patchtester</name>
 	<author>Joomla! Project</author>
 	<creationDate>17-October-2019</creationDate>
@@ -15,7 +15,6 @@
 			<file driver="mysql" charset="utf8">install/sql/mysql/install.sql</file>
 			<file driver="postgresql" charset="utf8">install/sql/postgresql/install.sql</file>
 			<file driver="pgsql" charset="utf8">install/sql/postgresql/install.sql</file>
-			<file driver="sqlsrv" charset="utf8">install/sql/sqlsrv/install.sql</file>
 		</sql>
 	</install>
 	<uninstall>
@@ -23,7 +22,6 @@
 			<file driver="mysql" charset="utf8">install/sql/mysql/uninstall.sql</file>
 			<file driver="postgresql" charset="utf8">install/sql/postgresql/uninstall.sql</file>
 			<file driver="pgsql" charset="utf8">install/sql/postgresql/uninstall.sql</file>
-			<file driver="sqlsrv" charset="utf8">install/sql/sqlsrv/uninstall.sql</file>
 		</sql>
 	</uninstall>
 	<update>
@@ -31,7 +29,6 @@
 			<schemapath type="mysql">install/sql/updates/mysql</schemapath>
 			<schemapath type="postgresql">install/sql/updates/postgresql</schemapath>
 			<schemapath type="pgsql">install/sql/updates/postgresql</schemapath>
-			<schemapath type="sqlsrv">install/sql/updates/sqlsrv</schemapath>
 		</schemas>
 	</update>
 	<media destination="com_patchtester" folder="media">

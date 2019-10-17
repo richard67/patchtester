@@ -8,7 +8,6 @@ cp -r administrator/templates/atum/html/com_patchtester build/packaging/atum
 cp -r media/com_patchtester build/packaging/media
 rm -rf build/packaging/admin/backups/*.txt
 mv build/packaging/admin/patchtester.xml build/packaging/patchtester.xml
-mv build/packaging/admin/script.php build/packaging/script.php
 cd build/packaging
 tar jcf ../packages/com_patchtester.tar.bz2 .
 tar zcf ../packages/com_patchtester.tar.gz .

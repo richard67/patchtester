@@ -14,62 +14,59 @@ foreach ($this->items as $i => $item) :
 	$status = '';
 
 	if ($item->applied) :
-		$status = ' class="success"';
+		$status = ' class="table-active"';
 	endif;
-	?>
+?>
 	<tr<?php echo $status; ?>>
-		<td class="center">
+		<th scope="row" class="text-center">
 			<?php echo $item->pull_id; ?>
-		</td>
+		</th>
 		<td>
-			<span class="hasTooltip"
-				  title="<strong>Info</strong><br/><?php echo $this->escape($item->description); ?>"><?php echo $this->escape($item->title); ?></span>
-			<?php if ($item->applied) : ?>
-				<div class="small">
-					<span class="label label-info"><?php echo Text::sprintf('COM_PATCHTESTER_APPLIED_COMMIT_SHA', substr($item->sha, 0, 10)); ?></span>
+			<span><?php echo $this->escape($item->title); ?></span>
+			<div role="tooltip" id="tip<?php echo $i; ?>">
+				<?php echo $this->escape($item->description); ?>
+			</div>
+			<div class="row">
+				<div class="col-md-auto">
+					<a class="badge badge-info" href="<?php echo $item->pull_url; ?>" target="_blank">
+						<?php echo Text::_('COM_PATCHTESTER_VIEW_ON_GITHUB'); ?>
+					</a>
 				</div>
-			<?php endif; ?>
+				<div class="col-md-auto">
+					<a class="badge badge-info"
+					   href="https://issues.joomla.org/tracker/<?php echo $this->trackerAlias; ?>/<?php echo $item->pull_id; ?>"
+					   target="_blank">
+						<?php echo Text::_('COM_PATCHTESTER_VIEW_ON_JOOMLA_ISSUE_TRACKER'); ?>
+					</a>
+				</div>
+				<?php if ($item->applied) : ?>
+					<div class="col-md-auto">
+						<span class="badge badge-info"><?php echo Text::sprintf('COM_PATCHTESTER_APPLIED_COMMIT_SHA', substr($item->sha, 0, 10)); ?></span>
+					</div>
+				<?php endif; ?>
+			</div>
 		</td>
-		<td class="center hidden-phone">
+		<td class="d-none d-md-table-cell text-center">
 			<?php echo $this->escape($item->branch); ?>
 		</td>
-		<td class="center hidden-phone">
+		<td class="d-none d-md-table-cell text-center">
 			<?php if ($item->is_rtc) : ?>
-				<span class="label label-success"><?php echo Text::_('JYES'); ?></span>
+				<span class="badge badge-success"><?php echo Text::_('JYES'); ?></span>
 			<?php else : ?>
-				<span class="label label-primary"><?php echo Text::_('JNO'); ?></span>
+				<span class="badge badge-secondary"><?php echo Text::_('JNO'); ?></span>
 			<?php endif; ?>
 		</td>
-		<td class="center">
-			<a class="btn btn-small btn-info" href="<?php echo $item->pull_url; ?>" target="_blank">
-				<span class="octicon octicon-mark-github"></span> <?php echo Text::_('COM_PATCHTESTER_GITHUB'); ?>
-			</a>
-		</td>
-		<?php if ($this->trackerAlias !== false) : ?>
-			<td class="center">
-				<a class="btn btn-small btn-warning"
-				   href="https://issues.joomla.org/tracker/<?php echo $this->trackerAlias; ?>/<?php echo $item->pull_id; ?>"
-				   target="_blank">
-					<i class="icon-joomla"></i> <?php echo Text::_('COM_PATCHTESTER_JISSUE'); ?>
-				</a>
-			</td>
-		<?php endif; ?>
-		<td class="center">
+		<td class="text-center">
 			<?php if ($item->applied) : ?>
-				<div>
-					<span class="label label-success"><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></span>
-				</div>
+				<span class="badge badge-success"><?php echo Text::_('COM_PATCHTESTER_APPLIED'); ?></span>
 			<?php else : ?>
-				<span class="label">
-			<?php echo Text::_('COM_PATCHTESTER_NOT_APPLIED'); ?>
-			</span>
+				<span class="badge badge-secondary"><?php echo Text::_('COM_PATCHTESTER_NOT_APPLIED'); ?></span>
 			<?php endif; ?>
 		</td>
-		<td class="center">
+		<td class="text-center">
 			<?php if ($item->applied) : ?>
 				<button type="button" class="btn btn-sm btn-success submitPatch"
 						data-task="revert-<?php echo (int) $item->applied; ?>"><?php echo Text::_('COM_PATCHTESTER_REVERT_PATCH'); ?></button>
-				<br/>
 			<?php else : ?>
 				<button type="button" class="btn btn-sm btn-primary submitPatch"
 						data-task="apply-<?php echo (int) $item->pull_id; ?>"><?php echo Text::_('COM_PATCHTESTER_APPLY_PATCH'); ?></button>
