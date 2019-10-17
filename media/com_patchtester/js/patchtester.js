@@ -9,27 +9,25 @@ if (typeof Joomla === 'undefined') {
     throw new Error('PatchTester JavaScript requires the Joomla core JavaScript API')
 }
 
-!function (Joomla, window, document) {
-    'use strict';
+document.addEventListener("DOMContentLoaded", function (event) {
 
-    window.PatchTester = {
-        /**
-         * Process the patch action
-         *
-         * @param {String} task The task to perform
-         * @param {Number} id   The item ID
-         */
-        submitpatch: function (task, id) {
-            var idField = document.getElementById('pull_id');
-            idField.value = id;
+    var submitPatch = document.querySelectorAll(".submitPatch");
+    var pullIdForm  = document.querySelector("#pull_id");
 
-            Joomla.submitform(task);
-        }
-    };
+    /**
+     * EventListener which listens on submitPatch Button,
+     * checks if it is an apply or revert method and
+     * processes the patch action
+     *
+     * @param {Event} event
+     */
+    submitPatch.forEach(function (element) {
+        element.addEventListener("click", function (event) {
+            var currentTarget = event.currentTarget;
+            var data          = currentTarget.dataset.task.split("-");
 
-    Joomla.submitbutton = function (task) {
-        if (task != 'reset' || confirm(Joomla.JText._('COM_PATCHTESTER_CONFIRM_RESET', 'Resetting will attempt to revert all applied patches and removes all backed up files. This may result in a corrupted environment. Are you sure you want to continue?'))) {
-            Joomla.submitform(task);
-        }
-    };
-}(Joomla, window, document);
+            pullIdForm.value = data[1];
+            Joomla.submitform(data[0]);
+        });
+    });
+});

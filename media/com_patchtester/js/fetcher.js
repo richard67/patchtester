@@ -112,7 +112,7 @@ if (typeof Joomla === 'undefined') {
                     jQuery('#progress').remove();
                 }
             });
-        }
+        };
 
         initialize();
     };
