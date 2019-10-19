@@ -269,9 +269,9 @@ class PullModel extends AbstractModel
 		{
 			try
 			{
-				$filePath = explode("\\", Path::clean($file));
+				$filePath = explode(DIRECTORY_SEPARATOR, Path::clean($file));
 				array_pop($filePath);
-				$filePath = implode("\\", $filePath);
+				$filePath = implode(DIRECTORY_SEPARATOR, $filePath);
 
 				// Deleted_logs returns files as well as folder, if value is folder, unset and skip
 				if (is_dir(JPATH_ROOT . "/$file"))
