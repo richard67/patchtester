@@ -50,7 +50,7 @@ $filterRtc     = $this->escape($this->state->get('filter.rtc'));
 										<?php echo Text::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION'); ?>
 									</label>
 									<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" class="form-control" placeholder="<?php echo Text::_('JSEARCH_FILTER'); ?>">
-									<div role="tooltip" id="filter_search-desc">
+									<div role="tooltip" id="filter[search]-desc">
 										<?php echo $this->escape(Text::_('COM_PATCHTESTER_FILTER_SEARCH_DESCRIPTION')); ?>
 									</div>
 									<span class="input-group-append">
