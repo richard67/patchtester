@@ -2,19 +2,19 @@
 <config>
 
 	<fieldset
-		name="repositories"
-		label="COM_PATCHTESTER_FIELDSET_REPOSITORIES_LABEL"
-		description="COM_PATCHTESTER_FIELDSET_REPOSITORIES_DESC"
-		>
+			name="repositories"
+			label="COM_PATCHTESTER_FIELDSET_REPOSITORIES_LABEL"
+			description="COM_PATCHTESTER_FIELDSET_REPOSITORIES_DESC"
+	>
 
 		<field
-			name="repository"
-			type="list"
-			label="COM_PATCHTESTER_FIELD_REPOSITORY_LABEL"
-			description="COM_PATCHTESTER_FIELD_REPOSITORY_DESC"
-			default="joomla:joomla-cms"
-			onchange="if (jQuery(this).val() != 'custom') { var parts = jQuery(this).val().split(':'); } else { var parts = ['', '']; }  document.getElementById('jform_org').value = parts[0]; document.getElementById('jform_repo').value = parts[1];"
-			>
+				name="repository"
+				type="list"
+				label="COM_PATCHTESTER_FIELD_REPOSITORY_LABEL"
+				description="COM_PATCHTESTER_FIELD_REPOSITORY_DESC"
+				default="joomla:joomla-cms"
+				onchange="if (jQuery(this).val() != 'custom') { var parts = jQuery(this).val().split(':'); } else { var parts = ['', '']; }  document.getElementById('jform_org').value = parts[0]; document.getElementById('jform_repo').value = parts[1];"
+		>
 			<option value="joomla:joomla-cms">COM_PATCHTESTER_FIELD_REPOSITORY_OPTION_JOOMLA_CMS</option>
 			<option value="joomla-extensions:patchtester">COM_PATCHTESTER_FIELD_REPOSITORY_OPTION_PATCHTESTER</option>
 			<option value="joomla-extensions:install-from-web-client">COM_PATCHTESTER_FIELD_REPOSITORY_OPTION_INSTALL_FROM_WEB</option>
@@ -23,42 +23,41 @@
 		</field>
 
 		<field
-			name="org"
-			type="text"
-			label="COM_PATCHTESTER_FIELD_ORG_LABEL"
-			description="COM_PATCHTESTER_FIELD_ORG_DESC"
-			default="joomla"
-			id="org"
-			showon="repository:custom"
+				name="org"
+				type="text"
+				label="COM_PATCHTESTER_FIELD_ORG_LABEL"
+				description="COM_PATCHTESTER_FIELD_ORG_DESC"
+				default="joomla"
+				id="org"
+				showon="repository:custom"
 		/>
 
 		<field
-			name="repo"
-			type="text"
-			label="COM_PATCHTESTER_FIELD_REPO_LABEL"
-			description="COM_PATCHTESTER_FIELD_REPO_DESC"
-			default="joomla-cms"
-			id="repo"
-			showon="repository:custom"
+				name="repo"
+				type="text"
+				label="COM_PATCHTESTER_FIELD_REPO_LABEL"
+				description="COM_PATCHTESTER_FIELD_REPO_DESC"
+				default="joomla-cms"
+				id="repo"
+				showon="repository:custom"
 		/>
 
 	</fieldset>
 
 	<fieldset
-		name="authentication"
-		label="COM_PATCHTESTER_FIELDSET_AUTHENTICATION_LABEL"
-		description="COM_PATCHTESTER_FIELDSET_AUTHENTICATION_DESC"
-		>
+			name="authentication"
+			label="COM_PATCHTESTER_FIELDSET_AUTHENTICATION_LABEL"
+			description="COM_PATCHTESTER_FIELDSET_AUTHENTICATION_DESC"
+	>
 
 		<field
-			name="gh_auth"
-			type="list"
-			label="COM_PATCHTESTER_FIELD_GH_AUTH_LABEL"
-			description="COM_PATCHTESTER_FIELD_GH_AUTH_DESC"
-			default=""
-			onchange="jQuery('#jform_gh_user, #jform_gh_password, #jform_gh_token').val('');"
-
-			>
+				name="gh_auth"
+				type="list"
+				label="COM_PATCHTESTER_FIELD_GH_AUTH_LABEL"
+				description="COM_PATCHTESTER_FIELD_GH_AUTH_DESC"
+				default=""
+				onchange="jQuery('#jform_gh_user, #jform_gh_password, #jform_gh_token').val('');"
+		>
 			<option value="">JNONE</option>
 			<option value="credentials">COM_PATCHTESTER_FIELD_GH_AUTH_OPTION_CREDENTIALS</option>
 			<option value="token">COM_PATCHTESTER_FIELD_GH_AUTH_OPTION_TOKEN</option>
@@ -66,49 +65,77 @@
 
 		<!-- Note: Default username is a space to avoid browser autocomplete. -->
 		<field
-			name="gh_user"
-			type="text"
-			label="COM_PATCHTESTER_FIELD_GH_USER_LABEL"
-			description="COM_PATCHTESTER_FIELD_GH_USER_DESC"
-			autocomplete="off"
-			default=" "
-			showon="gh_auth:credentials"
+				name="gh_user"
+				type="text"
+				label="COM_PATCHTESTER_FIELD_GH_USER_LABEL"
+				description="COM_PATCHTESTER_FIELD_GH_USER_DESC"
+				autocomplete="off"
+				default=" "
+				showon="gh_auth:credentials"
 		/>
 
 		<field
-			name="gh_password"
-			type="password"
-			label="COM_PATCHTESTER_FIELD_GH_PASSWORD_LABEL"
-			description="COM_PATCHTESTER_FIELD_GH_PASSWORD_DESC"
-			autocomplete="off"
-			default=""
-			showon="gh_auth:credentials"
+				name="gh_password"
+				type="password"
+				label="COM_PATCHTESTER_FIELD_GH_PASSWORD_LABEL"
+				description="COM_PATCHTESTER_FIELD_GH_PASSWORD_DESC"
+				autocomplete="off"
+				default=""
+				showon="gh_auth:credentials"
 		/>
 
 		<field
-			name="gh_token"
-			type="text"
-			label="COM_PATCHTESTER_FIELD_GH_TOKEN_LABEL"
-			description="COM_PATCHTESTER_FIELD_GH_TOKEN_DESC"
-			showon="gh_auth:token"
+				name="gh_token"
+				type="text"
+				label="COM_PATCHTESTER_FIELD_GH_TOKEN_LABEL"
+				description="COM_PATCHTESTER_FIELD_GH_TOKEN_DESC"
+				showon="gh_auth:token"
 		/>
 
 	</fieldset>
 
 	<fieldset
-		name="permissions"
-		label="JCONFIG_PERMISSIONS_LABEL"
-		description="JCONFIG_PERMISSIONS_DESC"
-		>
+			name="ci_settings"
+			label="COM_PATCHTESTER_FIELDSET_CI_SETTINGS"
+			description="COM_PATCHTESTER_FIELDSET_CI_SETTINGS_DESC"
+	>
 
 		<field
-			name="rules"
-			type="rules"
+				name="ci_server"
+				type="text"
+				label="COM_PATCHTESTER_FIELD_CI_SERVER_NAME"
+				description="COM_PATCHTESTER_FIELD_CI_SERVER_NAME_DESC"
+				autocomplete="off"
+				default="https://ci.joomla.org:444"
+		/>
+
+		<field
+				name="ci_switch"
+				type="list"
+				label="COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH"
+				description="COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH_DESC"
+				default="1"
+		>
+			<option value="1">COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH_OPTION_ON</option>
+			<option value="0">COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH_OPTION_OFF</option>
+		</field>
+
+	</fieldset>
+
+	<fieldset
+			name="permissions"
 			label="JCONFIG_PERMISSIONS_LABEL"
-			component="com_patchtester"
-			filter="rules"
-			validate="rules"
-			section="component"
+			description="JCONFIG_PERMISSIONS_DESC"
+	>
+
+		<field
+				name="rules"
+				type="rules"
+				label="JCONFIG_PERMISSIONS_LABEL"
+				component="com_patchtester"
+				filter="rules"
+				validate="rules"
+				section="component"
 		/>
 
 	</fieldset>

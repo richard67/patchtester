@@ -42,40 +42,58 @@ class ResetController extends AbstractController
 			$testsModel = new TestsModel(null, Factory::getDbo());
 
 			// Check the applied patches in the database first
-			$appliedPatches = $testsModel->getAppliedPatches();
+			$appliedPatches = $pullModel->getPatchesDividedInProcs();
 
-			if (count($appliedPatches))
+			if (count($appliedPatches['git']))
 			{
 				$revertErrored = false;
 
 				// Let's try to cleanly revert all applied patches
-				foreach ($appliedPatches as $patch)
+				foreach ($appliedPatches['git'] as $patch)
 				{
 					try
 					{
-						$pullModel->revert($patch->id);
+						$pullModel->revertWithGitHub($patch->id);
 					}
 					catch (\RuntimeException $e)
 					{
 						$revertErrored = true;
 					}
 				}
+			}
 
-				// If we errored out reverting patches, we'll need to truncate the table
-				if ($revertErrored)
+			if (count($appliedPatches['ci']))
+			{
+				$revertErrored = false;
+
+				// Let's try to cleanly revert all applied patches with ci
+				foreach ($appliedPatches['ci'] as $patch)
 				{
 					try
 					{
-						$testsModel->truncateTable();
+						$pullModel->revertWithCIServer($patch->insert_id);
 					}
 					catch (\RuntimeException $e)
 					{
-						$hasErrors = true;
-
-						$this->getApplication()->enqueueMessage(
-							Text::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_PULLS_TABLE', $e->getMessage()), 'error'
-						);
+						$revertErrored = true;
 					}
+				}
+			}
+
+			// If we errored out reverting patches, we'll need to truncate the table
+			if ($revertErrored)
+			{
+				try
+				{
+					$testsModel->truncateTable();
+				}
+				catch (\RuntimeException $e)
+				{
+					$hasErrors = true;
+
+					$this->getApplication()->enqueueMessage(
+						Text::sprintf('COM_PATCHTESTER_ERROR_TRUNCATING_PULLS_TABLE', $e->getMessage()), 'error'
+					);
 				}
 			}
 

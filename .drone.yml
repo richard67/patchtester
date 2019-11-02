@@ -1,0 +1,37 @@
+---
+kind: pipeline
+name: default
+
+clone:
+  depth: 42
+
+steps:
+  - name: composer
+    image: joomlaprojects/docker-tools:develop
+    commands:
+      - composer validate --no-check-all --strict
+      - composer install --no-progress --no-suggest
+
+  - name: phpcs
+    image: joomlaprojects/docker-images:php7.2
+    commands:
+      - echo $(date)
+      - ./administrator/components/com_patchtester/vendor/bin/phpcs --extensions=php -p --ignore=administrator/components/com_patchtester/vendor --standard=administrator/components/com_patchtester/vendor/joomla/cms-coding-standards/lib/Joomla-CMS administrator
+      - echo $(date)
+
+  - name: crowdin
+    image: joomlaprojects/docker-images:php7.2
+    environment:
+      CROWDIN_API_KEY:
+        from_secret: CROWDIN_API_KEY
+    commands:
+      - echo $(date)
+      - ./administrator/components/com_patchtester/vendor/bin/crowdin --upload
+      - echo $(date)
+    when:
+      event: push
+---
+kind: signature
+hmac: db121d6418e6f0702b311cce34d0a0dd12a4b88814138a4d1d02c1e6189e9d43
+
+...
