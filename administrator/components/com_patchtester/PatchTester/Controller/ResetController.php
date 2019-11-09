@@ -35,7 +35,8 @@ class ResetController extends AbstractController
 	{
 		try
 		{
-			$hasErrors = false;
+			$hasErrors     = false;
+			$revertErrored = false;
 
 			$pullModel  = new PullModel(null, Factory::getDbo());
 			$pullsModel = new PullsModel($this->context, null, Factory::getDbo());
@@ -46,8 +47,6 @@ class ResetController extends AbstractController
 
 			if (count($appliedPatches['git']))
 			{
-				$revertErrored = false;
-
 				// Let's try to cleanly revert all applied patches
 				foreach ($appliedPatches['git'] as $patch)
 				{
@@ -64,8 +63,6 @@ class ResetController extends AbstractController
 
 			if (count($appliedPatches['ci']))
 			{
-				$revertErrored = false;
-
 				// Let's try to cleanly revert all applied patches with ci
 				foreach ($appliedPatches['ci'] as $patch)
 				{
