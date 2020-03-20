@@ -398,7 +398,7 @@ class PullsModel extends AbstractModel
 					$this->getDb()->quote($branch),
 				);
 
-				$data[] = implode($pullData, ',');
+				$data[] = implode(',', $pullData);
 			}
 		}
 
