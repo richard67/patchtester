@@ -32,7 +32,7 @@ Click Revert Patch to revert an applied patch.
 You can read more about this extension on the [Joomla! Documentation Wiki](https://docs.joomla.org/Component_Patchtester_for_Testers).
 
 Video tutorial:
-https://www.youtube.com/watch?v=4OWgusZgIfk
+https://www.youtube.com/watch?v=s881RLaFO8U ( patch tester 3.0 beta 3 - 2017 )
 
 GitHub Two Factor Authentication
 =============
