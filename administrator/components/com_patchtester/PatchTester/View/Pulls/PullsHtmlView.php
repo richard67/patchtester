@@ -148,7 +148,7 @@ class PullsHtmlView extends DefaultHtmlView
 				0,
 				0,
 				'window.parent.location.reload()',
-				Text::_('COM_PATCHTESTER_HEADING_FETCH_DATA')
+				'COM_PATCHTESTER_HEADING_FETCH_DATA'
 			);
 
 			// Add a reset button.
