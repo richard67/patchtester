@@ -1,4 +1,4 @@
-Patch Tester [![Build Status](https://travis-ci.org/joomla-extensions/patchtester.png)](https://travis-ci.org/joomla-extensions/patchtester) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/joomla-patchtester/localized.svg)](https://crowdin.com/project/joomla-patchtester)
+Patch Tester [![Build Status](https://ci.joomla.org/api/badges/joomla-extensions/patchtester/status.svg)](https://ci.joomla.org/joomla-extensions/patchtester) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/joomla-patchtester/localized.svg)](https://crowdin.com/project/joomla-patchtester)
 =============
 
 * [In English](#license)
