@@ -8,7 +8,6 @@
 
 namespace PatchTester\View\Pulls;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Toolbar\Toolbar;
@@ -114,12 +113,6 @@ class PullsHtmlView extends DefaultHtmlView
 		// Make text strings available in the JavaScript API
 		Text::script('COM_PATCHTESTER_CONFIRM_RESET');
 
-		// Set a warning on 4.0 branch
-		if (version_compare(JVERSION, '4.0', 'ge'))
-		{
-			Factory::getApplication()->enqueueMessage(Text::_('COM_PATCHTESTER_40_WARNING'), 'warning');
-		}
-
 		return parent::render();
 	}
 
@@ -148,7 +141,7 @@ class PullsHtmlView extends DefaultHtmlView
 				0,
 				0,
 				'window.parent.location.reload()',
-				'COM_PATCHTESTER_HEADING_FETCH_DATA'
+				Text::_('COM_PATCHTESTER_HEADING_FETCH_DATA')
 			);
 
 			// Add a reset button.
