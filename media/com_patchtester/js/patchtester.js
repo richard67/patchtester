@@ -10,9 +10,7 @@ if (typeof Joomla === 'undefined') {
 }
 
 document.addEventListener("DOMContentLoaded", function (event) {
-
     var submitPatch = document.querySelectorAll(".submitPatch");
-    var pullIdForm  = document.querySelector("#pull_id");
 
     /**
      * EventListener which listens on submitPatch Button,
@@ -24,10 +22,35 @@ document.addEventListener("DOMContentLoaded", function (event) {
     submitPatch.forEach(function (element) {
         element.addEventListener("click", function (event) {
             var currentTarget = event.currentTarget;
-            var data          = currentTarget.dataset.task.split("-");
+            var task = currentTarget.dataset.task
+            var id = currentTarget.dataset.id
 
-            pullIdForm.value = data[1];
-            Joomla.submitform(data[0]);
+            PatchTester.submitpatch(task, id);
         });
     });
 });
+
+!function (Joomla, window, document) {
+    'use strict';
+
+    window.PatchTester = {
+        /**
+         * Process the patch action
+         *
+         * @param {String} task The task to perform
+         * @param {Number} id   The item ID
+         */
+        submitpatch: function (task, id) {
+            var idField = document.getElementById('pull_id');
+            idField.value = id;
+
+            Joomla.submitform(task);
+        }
+    };
+
+    Joomla.submitbutton = function (task) {
+        if (task !== 'reset' || confirm(Joomla.JText._('COM_PATCHTESTER_CONFIRM_RESET', 'Resetting will attempt to revert all applied patches and removes all backed up files. This may result in a corrupted environment. Are you sure you want to continue?'))) {
+            Joomla.submitform(task);
+        }
+    };
+}(Joomla, window, document);
