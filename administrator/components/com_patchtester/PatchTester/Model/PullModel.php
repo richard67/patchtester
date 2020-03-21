@@ -338,7 +338,7 @@ class PullModel extends AbstractModel
 		$this->appendPatchChain($lastInserted, $id);
 
 		// On Joomla 4 or later, remove the autoloader file
-		if (version_compare(JVERSION, '4', 'ge' && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
 		{
 			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
 		}
@@ -513,7 +513,7 @@ class PullModel extends AbstractModel
 		$this->saveAppliedPatch($pull->number, $parsedFiles, $pull->head->sha);
 
 		// On Joomla 4 or later, remove the autoloader file
-		if (version_compare(JVERSION, '4', 'ge' && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
 		{
 			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
 		}
@@ -726,7 +726,7 @@ class PullModel extends AbstractModel
 		Folder::delete($backupsPath);
 
 		// On Joomla 4 or later, remove the autoloader file
-		if (version_compare(JVERSION, '4', 'ge' && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
 		{
 			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
 		}
@@ -841,7 +841,7 @@ class PullModel extends AbstractModel
 		}
 
 		// On Joomla 4 or later, remove the autoloader file
-		if (version_compare(JVERSION, '4', 'ge' && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
 		{
 			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
 		}
