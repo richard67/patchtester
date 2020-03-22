@@ -13,7 +13,6 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Http\HttpFactory;
-use Joomla\CMS\Http\Response;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Version;
 use Joomla\Filesystem\File;
@@ -22,6 +21,8 @@ use Joomla\Registry\Registry;
 use PatchTester\GitHub\Exception\UnexpectedResponse;
 use PatchTester\GitHub\GitHub;
 use PatchTester\Helper;
+use RuntimeException;
+use stdClass;
 
 /**
  * Methods supporting pull requests.
@@ -72,15 +73,546 @@ class PullModel extends AbstractModel
 	);
 
 	/**
+	 * Patches the code with the supplied pull request
+	 * However uses different methods for different repositories.
+	 *
+	 * @param   integer  $id  ID of the pull request to apply
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 *
+	 * @throws  RuntimeException
+	 */
+	public function apply(int $id): bool
+	{
+		$params = ComponentHelper::getParams('com_patchtester');
+
+		// Decide based on repository settings whether patch will be applied through Github or CIServer
+		if (version_compare(JVERSION, '4', 'ge') && (bool) $params->get('ci_switch', 1))
+		{
+			return $this->applyWithCIServer($id);
+		}
+
+		return $this->applyWithGitHub($id);
+	}
+
+	/**
+	 * Patches the code with the supplied pull request
+	 *
+	 * @param   integer  $id  ID of the pull request to apply
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0
+	 *
+	 * @throws  RuntimeException
+	 */
+	private function applyWithCIServer(int $id): bool
+	{
+		// Get the CIServer Registry
+		$ciSettings = Helper::initializeCISettings();
+
+		// Get the Github object
+		$github = Helper::initializeGithub();
+
+		// Retrieve pullData for sha later on.
+		$pull = $this->retrieveGitHubData($github, $id);
+
+		if ($pull->head->repo === null)
+		{
+			throw new RuntimeException(Text::_('COM_PATCHTESTER_REPO_IS_GONE'));
+		}
+
+		$sha  = $pull->head->sha;
+
+		// Create tmp folder if it does not exist
+		if (!file_exists($ciSettings->get('folder.temp')))
+		{
+			Folder::create($ciSettings->get('folder.temp'));
+		}
+
+		$tempPath    = $ciSettings->get('folder.temp') . '/' . $id;
+		$backupsPath = $ciSettings->get('folder.backups') . '/' . $id;
+
+		$delLogPath = $tempPath . '/' . $ciSettings->get('zip.log.name');
+		$zipPath    = $tempPath . '/' . $ciSettings->get('zip.name');
+
+		$serverZipPath = sprintf($ciSettings->get('zip.url'), $id);
+
+		// Patch has already been applied
+		if (file_exists($backupsPath))
+		{
+			return false;
+		}
+
+		$version    = new Version;
+		$httpOption = new Registry;
+		$httpOption->set('userAgent', $version->getUserAgent('Joomla', true, false));
+
+		// Try to download the zip file
+		try
+		{
+			$http   = HttpFactory::getHttp($httpOption);
+			$result = $http->get($serverZipPath);
+		}
+		catch (RuntimeException $e)
+		{
+			$result = null;
+		}
+
+		if ($result === null || ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 310))
+		{
+			throw new RuntimeException(Text::_('COM_PATCHTESTER_SERVER_RESPONDED_NOT_200'));
+		}
+
+		// Assign to variable to avlod PHP notice "Indirect modification of overloaded property"
+		$content = (string) $result->getBody();
+
+		// Write the file to disk
+		File::write($zipPath, $content);
+
+		// Check if zip folder could have been downloaded
+		if (!file_exists($zipPath))
+		{
+			throw new RuntimeException(Text::_('COM_PATCHTESTER_ZIP_DOES_NOT_EXIST'));
+		}
+
+		Folder::create($tempPath);
+
+		$zip = new Zip;
+
+		if (!$zip->extract($zipPath, $tempPath))
+		{
+			Folder::delete($tempPath);
+			throw new RuntimeException(Text::_('COM_PATCHTESTER_ZIP_EXTRACT_FAILED'));
+		}
+
+		// Remove zip to avoid get listing afterwards
+		File::delete($zipPath);
+
+		// Get files from deleted_logs
+		$deletedFiles = (file_exists($delLogPath) ? file($delLogPath) : array());
+		$deletedFiles = array_map('trim', $deletedFiles);
+
+		if (file_exists($delLogPath))
+		{
+			// Remove deleted_logs to avoid get listing afterwards
+			File::delete($delLogPath);
+		}
+
+		// Retrieve all files and merge them into one array
+		$files = Folder::files($tempPath, null, true, true);
+		$files = str_replace(Path::clean($tempPath . '\\'), '', $files);
+		$files = array_merge($files, $deletedFiles);
+
+		Folder::create($backupsPath);
+
+		// Moves existent files to backup and replace them or creates new one if they don't exist
+		foreach ($files as $key => $file)
+		{
+			try
+			{
+				$filePath = explode(DIRECTORY_SEPARATOR, Path::clean($file));
+				array_pop($filePath);
+				$filePath = implode(DIRECTORY_SEPARATOR, $filePath);
+
+				// Deleted_logs returns files as well as folder, if value is folder, unset and skip
+				if (is_dir(JPATH_ROOT . '/' . $file))
+				{
+					unset($files[$key]);
+					continue;
+				}
+
+				if (file_exists(JPATH_ROOT . '/' . $file))
+				{
+					// Create directories if they don't exist until file
+					if (!file_exists($backupsPath . '/' . $filePath))
+					{
+						Folder::create($backupsPath . '/' . $filePath);
+					}
+
+					File::move(JPATH_ROOT . '/' . $file, $backupsPath . '/' . $file);
+				}
+
+				if (file_exists($tempPath . '/' . $file))
+				{
+					// Create directories if they don't exist until file
+					if (!file_exists(JPATH_ROOT . '/' . $filePath) || !is_dir(JPATH_ROOT . '/' . $filePath))
+					{
+						Folder::create(JPATH_ROOT . '/' . $filePath);
+					}
+
+					File::copy($tempPath . '/' . $file, JPATH_ROOT . '/' . $file);
+				}
+			}
+			catch (RuntimeException $exception)
+			{
+				Folder::delete($tempPath);
+
+				Folder::move($backupsPath, $backupsPath . "_failed");
+				throw new RuntimeException(
+					Text::sprintf('COM_PATCHTESTER_FAILED_APPLYING_PATCH', $file, $exception->getMessage())
+				);
+			}
+		}
+
+		// Clear temp folder and store applied patch in database
+		Folder::delete($tempPath);
+
+		$lastInserted = $this->saveAppliedPatch($id, $files, $sha);
+
+		// Write or create patch chain for correct order of patching
+		$this->appendPatchChain($lastInserted, $id);
+
+		// On Joomla 4 or later, remove the autoloader file
+		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		{
+			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
+		}
+
+		// Change the media version
+		$version = new Version;
+		$version->refreshMediaVersion();
+
+		return true;
+	}
+
+	/**
+	 * Patches the code with the supplied pull request
+	 *
+	 * @param   GitHub   $github  github object
+	 * @param   integer  $id      Id of the pull request
+	 *
+	 * @return  stdClass The pull request data
+	 *
+	 * @since   2.0
+	 *
+	 * @throws  RuntimeException
+	 */
+	private function retrieveGitHubData(GitHub $github, int $id): stdClass
+	{
+		try
+		{
+			$rateResponse = $github->getRateLimit();
+			$rate         = json_decode($rateResponse->body, false);
+		}
+		catch (UnexpectedResponse $exception)
+		{
+			throw new RuntimeException(
+				Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $exception->getMessage()),
+				$exception->getCode(),
+				$exception
+			);
+		}
+
+		// If over the API limit, we can't build this list
+		if ((int) $rate->resources->core->remaining === 0)
+		{
+			throw new RuntimeException(
+				Text::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset))
+			);
+		}
+
+		try
+		{
+			$pullResponse = $github->getPullRequest(
+				$this->getState()->get('github_user'),
+				$this->getState()->get('github_repo'),
+				$id
+			);
+			$pull         = json_decode($pullResponse->body, false);
+		}
+		catch (UnexpectedResponse $exception)
+		{
+			throw new RuntimeException(
+				Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $exception->getMessage()),
+				$exception->getCode(),
+				$exception
+			);
+		}
+
+		return $pull;
+	}
+
+	/**
+	 * Saves the applied patch into database
+	 *
+	 * @param   integer  $id        ID of the applied pull request
+	 * @param   array    $fileList  List of files
+	 * @param   string   $sha       sha-key from pull request
+	 *
+	 * @return  integer  $id    last inserted id
+	 *
+	 * @since   3.0
+	 */
+	private function saveAppliedPatch(int $id, array $fileList, string $sha = null): int
+	{
+		$record = (object) array(
+			'pull_id'         => $id,
+			'data'            => json_encode($fileList),
+			'patched_by'      => Factory::getUser()->id,
+			'applied'         => 1,
+			'applied_version' => JVERSION,
+		);
+
+		$db = $this->getDb();
+
+		$db->insertObject('#__patchtester_tests', $record);
+		$insertId = $db->insertid();
+
+		if ($sha !== null)
+		{
+			// Insert the retrieved commit SHA into the pulls table for this item
+			$db->setQuery(
+				$db->getQuery(true)
+					->update('#__patchtester_pulls')
+					->set('sha = ' . $db->quote($sha))
+					->where($db->quoteName('pull_id') . ' = ' . $id)
+			)->execute();
+		}
+
+		return $insertId;
+	}
+
+	/**
+	 * Adds a value to the patch chain in the database
+	 *
+	 * @param   integer  $insertId  ID of the patch in the database
+	 * @param   integer  $pullId    ID of the pull request
+	 *
+	 * @return  integer  $insertId  last inserted element
+	 *
+	 * @since   3.0.0
+	 */
+	private function appendPatchChain(int $insertId, int $pullId): int
+	{
+		$record = (object) array(
+			'insert_id' => $insertId,
+			'pull_id'   => $pullId,
+		);
+
+		$db = $this->getDb();
+
+		$db->insertObject('#__patchtester_chain', $record);
+
+		return $db->insertid();
+	}
+
+	/**
+	 * Patches the code with the supplied pull request
+	 *
+	 * @param   integer  $id  ID of the pull request to apply
+	 *
+	 * @return  boolean
+	 *
+	 * @since   2.0
+	 *
+	 * @throws  RuntimeException
+	 */
+	private function applyWithGitHub(int $id): bool
+	{
+		// Get the Github object
+		$github = Helper::initializeGithub();
+
+		$pull = $this->retrieveGitHubData($github, $id);
+
+		if ($pull->head->repo === null)
+		{
+			throw new RuntimeException(Text::_('COM_PATCHTESTER_REPO_IS_GONE'));
+		}
+
+		try
+		{
+			$filesResponse = $github->getFilesForPullRequest(
+				$this->getState()->get('github_user'),
+				$this->getState()->get('github_repo'),
+				$id
+			);
+			$files         = json_decode($filesResponse->body, false);
+		}
+		catch (UnexpectedResponse $exception)
+		{
+			throw new RuntimeException(
+				Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $exception->getMessage()),
+				$exception->getCode(),
+				$exception
+			);
+		}
+
+		if (!count($files))
+		{
+			return false;
+		}
+
+		$parsedFiles = $this->parseFileList($files);
+
+		if (!count($parsedFiles))
+		{
+			return false;
+		}
+
+		foreach ($parsedFiles as $file)
+		{
+			switch ($file->action)
+			{
+				case 'deleted':
+					if (!file_exists(JPATH_ROOT . '/' . $file->filename))
+					{
+						throw new RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_FILE_DELETED_DOES_NOT_EXIST_S', $file->filename)
+						);
+					}
+
+					break;
+
+				case 'added':
+				case 'modified':
+				case 'renamed':
+					// If the backup file already exists, we can't apply the patch
+					if (file_exists(JPATH_COMPONENT . '/backups/' . md5($file->filename) . '.txt'))
+					{
+						throw new RuntimeException(Text::sprintf('COM_PATCHTESTER_CONFLICT_S', $file->filename));
+					}
+
+					if ($file->action === 'modified' && !file_exists(JPATH_ROOT . '/' . $file->filename))
+					{
+						throw new RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_FILE_MODIFIED_DOES_NOT_EXIST_S', $file->filename)
+						);
+					}
+
+					try
+					{
+						$contentsResponse = $github->getFileContents(
+							$pull->head->user->login,
+							$this->getState()->get('github_repo'),
+							$file->repofilename,
+							urlencode($pull->head->ref)
+						);
+
+						$contents = json_decode($contentsResponse->body, false);
+
+						// In case encoding type ever changes
+						switch ($contents->encoding)
+						{
+							case 'base64':
+								$file->body = base64_decode($contents->content);
+
+								break;
+
+							default:
+								throw new RuntimeException(Text::_('COM_PATCHTESTER_ERROR_UNSUPPORTED_ENCODING'));
+						}
+					}
+					catch (UnexpectedResponse $exception)
+					{
+						throw new RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $exception->getMessage()),
+							$exception->getCode(),
+							$exception
+						);
+					}
+
+					break;
+			}
+		}
+
+		// At this point, we have ensured that we have all the new files and there are no conflicts
+		foreach ($parsedFiles as $file)
+		{
+			// We only create a backup if the file already exists
+			if ($file->action === 'deleted'
+				|| (file_exists(JPATH_ROOT . '/' . $file->filename)
+				&& $file->action === 'modified')
+				|| (file_exists(JPATH_ROOT . '/' . $file->originalFile) && $file->action === 'renamed'))
+			{
+				$filename = $file->action === 'renamed' ? $file->originalFile : $file->filename;
+				$src      = JPATH_ROOT . '/' . $filename;
+				$dest     = JPATH_COMPONENT . '/backups/' . md5($filename) . '.txt';
+
+				if (!File::copy(Path::clean($src), $dest))
+				{
+					throw new RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest));
+				}
+			}
+
+			switch ($file->action)
+			{
+				case 'modified':
+				case 'added':
+					if (!File::write(Path::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
+					{
+						throw new RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename)
+						);
+					}
+
+					break;
+
+				case 'deleted':
+					if (!File::delete(Path::clean(JPATH_ROOT . '/' . $file->filename)))
+					{
+						throw new RuntimeException(
+							Text::sprintf(
+								'COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE',
+								JPATH_ROOT . '/' . $file->filename
+							)
+						);
+					}
+
+					break;
+
+				case 'renamed':
+					if (!File::delete(Path::clean(JPATH_ROOT . '/' . $file->originalFile)))
+					{
+						throw new RuntimeException(
+							Text::sprintf(
+								'COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE',
+								JPATH_ROOT . '/' . $file->originalFile
+							)
+						);
+					}
+
+					if (!File::write(Path::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
+					{
+						throw new RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename)
+						);
+					}
+
+					break;
+			}
+
+			// We don't need the file's body any longer (and it causes issues with binary data when json_encode() is run), so remove it
+			unset($file->body);
+		}
+
+		$this->saveAppliedPatch($pull->number, $parsedFiles, $pull->head->sha);
+
+		// On Joomla 4 or later, remove the autoloader file
+		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		{
+			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
+		}
+
+		// Change the media version
+		$version = new Version;
+		$version->refreshMediaVersion();
+
+		return true;
+	}
+
+	/**
 	 * Parse the list of modified files from a pull request
 	 *
-	 * @param   object  $files  The modified files to parse
+	 * @param   stdClass  $files  The modified files to parse
 	 *
 	 * @return  array
 	 *
 	 * @since   3.0.0
 	 */
-	protected function parseFileList($files)
+	protected function parseFileList(stdClass $files): array
 	{
 		$parsedFiles = array();
 
@@ -96,12 +628,12 @@ class PullModel extends AbstractModel
 			{
 				$filePath = explode('/', $file->filename);
 
-				if (in_array($filePath[0], $this->nonProductionFiles))
+				if (in_array($filePath[0], $this->nonProductionFiles, true))
 				{
 					continue;
 				}
 
-				if (in_array($filePath[0], $this->nonProductionFolders))
+				if (in_array($filePath[0], $this->nonProductionFolders, true))
 				{
 					continue;
 				}
@@ -109,7 +641,7 @@ class PullModel extends AbstractModel
 
 			// Sometimes the repo filename is not the production file name
 			$prodFileName        = $file->filename;
-			$prodRenamedFileName = isset($file->previous_filename) ? $file->previous_filename : false;
+			$prodRenamedFileName = $file->previous_filename ?? false;
 			$filePath            = explode('/', $prodFileName);
 
 			// Remove the `src` here to match the CMS paths if needed
@@ -142,475 +674,6 @@ class PullModel extends AbstractModel
 	}
 
 	/**
-	 * Patches the code with the supplied pull request
-	 * However uses different methods for different repositories.
-	 *
-	 * @param   integer  $id  ID of the pull request to apply
-	 *
-	 * @return  boolean
-	 *
-	 * @since   3.0
-	 *
-	 * @throws  \RuntimeException
-	 */
-	public function apply($id)
-	{
-		$params = ComponentHelper::getParams('com_patchtester');
-
-		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if (version_compare(JVERSION, "4", "ge") && (bool) $params->get('ci_switch', 1))
-		{
-			return $this->applyWithCIServer($id);
-		}
-		else
-		{
-			return $this->applyWithGitHub($id);
-		}
-	}
-
-	/**
-	 * Patches the code with the supplied pull request
-	 *
-	 * @param   integer  $id  ID of the pull request to apply
-	 *
-	 * @return  boolean
-	 *
-	 * @since   3.0
-	 *
-	 * @throws  \RuntimeException
-	 */
-	private function applyWithCIServer($id)
-	{
-		// Get the CIServer Registry
-		$ciSettings = Helper::initializeCISettings();
-
-		// Get the Github object
-		$github = Helper::initializeGithub();
-
-		// Retrieve pullData for sha later on.
-		try
-		{
-			$pull = $this->retrieveGitHubData($github, $id);
-			$sha  = $pull->head->sha;
-		}
-		catch (\RuntimeException $e)
-		{
-			// Catch the Exception and continue, because the hash is not that
-			// necessary for applying patches
-			$sha = "Error:429";
-		}
-
-		// Create tmp folder if it does not exist
-		if (!file_exists($ciSettings->get('folder.temp')))
-		{
-			Folder::create($ciSettings->get('folder.temp'));
-		}
-
-		$tempPath                 = $ciSettings->get('folder.temp') . "/$id";
-		$backupsPath              = $ciSettings->get('folder.backups') . "/$id";
-
-		$delLogPath               = $tempPath . '/' . $ciSettings->get('zip.log.name');
-		$zipPath                  = $tempPath . '/' . $ciSettings->get('zip.name');
-
-		$serverZipPath            = sprintf($ciSettings->get('zip.url'), $id);
-
-		// Patch has already been applied
-		if (file_exists($backupsPath))
-		{
-			return false;
-		}
-
-		$version    = new Version;
-		$httpOption = new Registry;
-		$httpOption->set('userAgent', $version->getUserAgent('Joomla', true, false));
-
-		// Try to download the zip file
-		try
-		{
-			$http = HttpFactory::getHttp($httpOption);
-			$result = $http->get($serverZipPath);
-		}
-		catch (\RuntimeException $e)
-		{
-			$result = null;
-		}
-
-		if ($result === null || ($result->getStatusCode() !== 200 && $result->getStatusCode() !== 310))
-		{
-			throw new \RuntimeException(Text::_('COM_PATCHTESTER_SERVER_RESPONDED_NOT_200'));
-		}
-
-		// Assign to variable to avlod PHP notice "Indirect modification of overloaded property"
-		$content = (string) $result->getBody();
-
-		// Write the file to disk
-		File::write($zipPath, $content);
-
-		// Check if zip folder could have been downloaded
-		if (!file_exists($zipPath))
-		{
-			throw new \RuntimeException(Text::_('COM_PATCHTESTER_ZIP_DOES_NOT_EXIST'));
-		}
-
-		Folder::create($tempPath);
-
-		$zip = new Zip;
-
-		if (!$zip->extract($zipPath, $tempPath))
-		{
-			Folder::delete($tempPath);
-			throw new \RuntimeException(Text::_('COM_PATCHTESTER_ZIP_EXTRACT_FAILED'));
-		}
-
-		// Remove zip to avoid get listing afterwards
-		File::delete($zipPath);
-
-		// Get files from deleted_logs
-		$deletedFiles = (file_exists($delLogPath) ? file($delLogPath) : array());
-		$deletedFiles = array_map('trim', $deletedFiles);
-
-		if (file_exists($delLogPath))
-		{
-			// Remove deleted_logs to avoid get listing afterwards
-			File::delete($delLogPath);
-		}
-
-		// Retrieve all files and merge them into one array
-		$files = Folder::files($tempPath, null, true, true);
-		$files = str_replace(Path::clean("$tempPath\\"), '', $files);
-		$files = array_merge($files, $deletedFiles);
-
-		Folder::create($backupsPath);
-
-		// Moves existent files to backup and replace them or creates new one if they don't exist
-		foreach ($files as $key => $file)
-		{
-			try
-			{
-				$filePath = explode(DIRECTORY_SEPARATOR, Path::clean($file));
-				array_pop($filePath);
-				$filePath = implode(DIRECTORY_SEPARATOR, $filePath);
-
-				// Deleted_logs returns files as well as folder, if value is folder, unset and skip
-				if (is_dir(JPATH_ROOT . "/$file"))
-				{
-					unset($files[$key]);
-					continue;
-				}
-
-				if (file_exists(JPATH_ROOT . "/$file"))
-				{
-					// Create directories if they don't exist until file
-					if (!file_exists("$backupsPath/$filePath"))
-					{
-						Folder::create("$backupsPath/$filePath");
-					}
-
-					File::move(JPATH_ROOT . "/$file", "$backupsPath/$file");
-				}
-
-				if (file_exists("$tempPath/$file"))
-				{
-					// Create directories if they don't exist until file
-					if (!file_exists(JPATH_ROOT . "/$filePath") || !is_dir(JPATH_ROOT . "/$filePath"))
-					{
-						Folder::create(JPATH_ROOT . "/$filePath");
-					}
-
-					File::copy("$tempPath/$file", JPATH_ROOT . "/$file");
-				}
-			}
-			catch (\RuntimeException $e)
-			{
-				Folder::delete($tempPath);
-
-				Folder::move($backupsPath, $backupsPath . "_failed");
-				throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FAILED_APPLYING_PATCH', $file, $e->getMessage()));
-			}
-		}
-
-		// Clear temp folder and store applied patch in database
-		Folder::delete($tempPath);
-
-		$lastInserted = $this->saveAppliedPatch($id, $files, $sha);
-
-		// Write or create patch chain for correct order of patching
-		$this->appendPatchChain($lastInserted, $id);
-
-		// On Joomla 4 or later, remove the autoloader file
-		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
-		{
-			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
-		}
-
-		// Change the media version
-		$version = new Version;
-		$version->refreshMediaVersion();
-
-		return true;
-	}
-
-	/**
-	 * Patches the code with the supplied pull request
-	 *
-	 * @param   integer  $id  ID of the pull request to apply
-	 *
-	 * @return  boolean
-	 *
-	 * @since   2.0
-	 *
-	 * @throws  \RuntimeException
-	 */
-	private function applyWithGitHub($id)
-	{
-		// Get the Github object
-		$github = Helper::initializeGithub();
-
-		$pull = $this->retrieveGitHubData($github, $id);
-
-		if (is_null($pull->head->repo))
-		{
-			throw new \RuntimeException(Text::_('COM_PATCHTESTER_REPO_IS_GONE'));
-		}
-
-		try
-		{
-			$filesResponse = $github->getFilesForPullRequest($this->getState()->get('github_user'), $this->getState()->get('github_repo'), $id);
-			$files         = json_decode($filesResponse->body);
-		}
-		catch (UnexpectedResponse $e)
-		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
-		}
-
-		if (!count($files))
-		{
-			return false;
-		}
-
-		$parsedFiles = $this->parseFileList($files);
-
-		if (!count($parsedFiles))
-		{
-			return false;
-		}
-
-		foreach ($parsedFiles as $file)
-		{
-			switch ($file->action)
-			{
-				case 'deleted':
-					if (!file_exists(JPATH_ROOT . '/' . $file->filename))
-					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FILE_DELETED_DOES_NOT_EXIST_S', $file->filename));
-					}
-
-					break;
-
-				case 'added':
-				case 'modified':
-				case 'renamed':
-					// If the backup file already exists, we can't apply the patch
-					if (file_exists(JPATH_COMPONENT . '/backups/' . md5($file->filename) . '.txt'))
-					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_CONFLICT_S', $file->filename));
-					}
-
-					if ($file->action == 'modified' && !file_exists(JPATH_ROOT . '/' . $file->filename))
-					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FILE_MODIFIED_DOES_NOT_EXIST_S', $file->filename));
-					}
-
-					try
-					{
-						$contentsResponse = $github->getFileContents(
-							$pull->head->user->login, $this->getState()->get('github_repo'), $file->repofilename, urlencode($pull->head->ref)
-						);
-
-						$contents = json_decode($contentsResponse->body);
-
-						// In case encoding type ever changes
-						switch ($contents->encoding)
-						{
-							case 'base64':
-								$file->body = base64_decode($contents->content);
-
-								break;
-
-							default:
-								throw new \RuntimeException(Text::_('COM_PATCHTESTER_ERROR_UNSUPPORTED_ENCODING'));
-						}
-					}
-					catch (UnexpectedResponse $e)
-					{
-						throw new \RuntimeException(
-							Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()),
-							$e->getCode(),
-							$e
-						);
-					}
-
-					break;
-			}
-		}
-
-		// At this point, we have ensured that we have all the new files and there are no conflicts
-		foreach ($parsedFiles as $file)
-		{
-			// We only create a backup if the file already exists
-			if ($file->action == 'deleted' || (file_exists(JPATH_ROOT . '/' . $file->filename) && $file->action == 'modified')
-				|| (file_exists(JPATH_ROOT . '/' . $file->originalFile) && $file->action == 'renamed'))
-			{
-				$filename = $file->action == 'renamed' ? $file->originalFile : $file->filename;
-				$src      = JPATH_ROOT . '/' . $filename;
-				$dest     = JPATH_COMPONENT . '/backups/' . md5($filename) . '.txt';
-
-				if (!File::copy(Path::clean($src), $dest))
-				{
-					throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest));
-				}
-			}
-
-			switch ($file->action)
-			{
-				case 'modified':
-				case 'added':
-					if (!File::write(Path::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
-					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename));
-					}
-
-					break;
-
-				case 'deleted':
-					if (!File::delete(Path::clean(JPATH_ROOT . '/' . $file->filename)))
-					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->filename));
-					}
-
-					break;
-
-				case 'renamed':
-					if (!File::delete(Path::clean(JPATH_ROOT . '/' . $file->originalFile)))
-					{
-						throw new \RuntimeException(
-							Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', JPATH_ROOT . '/' . $file->originalFile)
-						);
-					}
-
-					if (!File::write(Path::clean(JPATH_ROOT . '/' . $file->filename), $file->body))
-					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_WRITE_FILE', JPATH_ROOT . '/' . $file->filename));
-					}
-
-					break;
-			}
-
-			// We don't need the file's body any longer (and it causes issues with binary data when json_encode() is run), so remove it
-			unset($file->body);
-		}
-
-		$this->saveAppliedPatch($pull->number, $parsedFiles, $pull->head->sha);
-
-		// On Joomla 4 or later, remove the autoloader file
-		if (version_compare(JVERSION, '4', 'ge') && file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
-		{
-			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
-		}
-
-		// Change the media version
-		$version = new Version;
-		$version->refreshMediaVersion();
-
-		return true;
-	}
-
-	/**
-	 * Patches the code with the supplied pull request
-	 *
-	 * @param   GitHub   $github  github object
-	 * @param   integer  $id      Id of the pull request
-	 *
-	 * @return  Response
-	 *
-	 * @since   2.0
-	 *
-	 * @throws  \RuntimeException
-	 */
-	private function retrieveGitHubData($github, $id)
-	{
-		try
-		{
-			$rateResponse = $github->getRateLimit();
-			$rate         = json_decode($rateResponse->body);
-		}
-		catch (UnexpectedResponse $e)
-		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
-		}
-
-		// If over the API limit, we can't build this list
-		if ($rate->resources->core->remaining == 0)
-		{
-			throw new \RuntimeException(
-				Text::sprintf('COM_PATCHTESTER_API_LIMIT_LIST', Factory::getDate($rate->resources->core->reset))
-			);
-		}
-
-		try
-		{
-			$pullResponse = $github->getPullRequest($this->getState()->get('github_user'), $this->getState()->get('github_repo'), $id);
-			$pull         = json_decode($pullResponse->body);
-		}
-		catch (UnexpectedResponse $e)
-		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_COULD_NOT_CONNECT_TO_GITHUB', $e->getMessage()), $e->getCode(), $e);
-		}
-
-		return $pull;
-	}
-
-	/**
-	 * Saves the applied patch into database
-	 *
-	 * @param   integer  $id        ID of the applied pull request
-	 * @param   array    $fileList  List of files
-	 * @param   string   $sha       sha-key from pull request
-	 *
-	 * @return  integer  $id    last inserted id
-	 *
-	 * @since   3.0
-	 */
-	private function saveAppliedPatch($id, $fileList, $sha = null)
-	{
-		$record = (object) array(
-			'pull_id'         => $id,
-			'data'            => json_encode($fileList),
-			'patched_by'      => Factory::getUser()->id,
-			'applied'         => 1,
-			'applied_version' => JVERSION,
-		);
-
-		$db = $this->getDb();
-
-		$db->insertObject('#__patchtester_tests', $record);
-		$insertId = $db->insertid();
-
-		if (!is_null($sha))
-		{
-			// Insert the retrieved commit SHA into the pulls table for this item
-			$db->setQuery(
-				$db->getQuery(true)
-					->update('#__patchtester_pulls')
-					->set('sha = ' . $db->quote($sha))
-					->where($db->quoteName('pull_id') . ' = ' . (int) $id)
-			)->execute();
-		}
-
-		return $insertId;
-	}
-
-	/**
 	 * Reverts the specified pull request
 	 * However uses different methods for different repositories.
 	 *
@@ -619,21 +682,57 @@ class PullModel extends AbstractModel
 	 * @return  boolean
 	 *
 	 * @since   3.0
-	 * @throws  \RuntimeException
+	 * @throws  RuntimeException
 	 */
-	public function revert($id)
+	public function revert(int $id): bool
 	{
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if (version_compare(JVERSION, "4", "ge") && ((bool) $params->get('ci_switch', 1) || $id === $this->getPatchChain($id)->insert_id))
+		if (version_compare(JVERSION, '4', 'ge') && ((bool) $params->get('ci_switch', 1)
+				|| $id === $this->getPatchChain($id)->insert_id)
+		)
 		{
 			return $this->revertWithCIServer($id);
 		}
-		else
+
+		return $this->revertWithGitHub($id);
+	}
+
+	/**
+	 * Returns a chain by specific value, returns the last
+	 * element on $id = -1 and the first on $id = null
+	 *
+	 * @param   integer  $id  specific id of a pull
+	 *
+	 * @return  stdClass  $chain  last chain of the table
+	 *
+	 * @since   3.0.0
+	 */
+	private function getPatchChain(int $id = null): stdClass
+	{
+		$db = $this->getDb();
+
+		$query = $db->getQuery(true)
+			->select('*')
+			->from('#__patchtester_chain');
+
+		if ($id !== null && $id !== -1)
 		{
-			return $this->revertWithGitHub($id);
+			$query = $query->where('insert_id =' . $id);
 		}
+
+		if ($id === -1)
+		{
+			$query = $query->order('id DESC');
+		}
+
+		if ($id === null)
+		{
+			$query = $query->order('id ASC');
+		}
+
+		return $db->setQuery($query, 0, 1)->loadObject();
 	}
 
 	/**
@@ -644,9 +743,9 @@ class PullModel extends AbstractModel
 	 * @return  boolean
 	 *
 	 * @since   3.0
-	 * @throws  \RuntimeException
+	 * @throws  RuntimeException
 	 */
-	public function revertWithCIServer($id)
+	public function revertWithCIServer(int $id): bool
 	{
 		// Get the CIServer Registry
 		$ciSettings = Helper::initializeCISettings();
@@ -657,26 +756,32 @@ class PullModel extends AbstractModel
 		$patchChain = $this->getPatchChain(-1);
 
 		// Allow only reverts in order of the patch chain
-		if ($patchChain->insert_id != $id)
+		if ((int) $patchChain->insert_id !== $id)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain->pull_id));
-		}
-		else
-		{
-			$this->removeLastChain($patchChain->insert_id);
+			throw new RuntimeException(
+				Text::sprintf('COM_PATCHTESTER_NOT_IN_ORDER_OF_PATCHCHAIN', $patchChain->pull_id)
+			);
 		}
 
+		$this->removeLastChain($patchChain->insert_id);
+
 		// We don't want to restore files from an older version
-		if ($testRecord->applied_version != JVERSION)
+		if ($testRecord->applied_version !== JVERSION)
 		{
 			return $this->removeTest($testRecord);
 		}
 
-		$files = json_decode($testRecord->data);
+		$files = json_decode($testRecord->data, false);
 
 		if (!$files)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_READING_DATABASE_TABLE', __METHOD__, htmlentities($testRecord->data)));
+			throw new RuntimeException(
+				Text::sprintf(
+					'COM_PATCHTESTER_ERROR_READING_DATABASE_TABLE',
+					__METHOD__,
+					htmlentities($testRecord->data)
+				)
+			);
 		}
 
 		$backupsPath = $ciSettings->get('folder.backups') . "/$testRecord->pull_id";
@@ -695,31 +800,33 @@ class PullModel extends AbstractModel
 					File::delete(JPATH_ROOT . "/$file");
 
 					// Move from backup, if it exists there
-					if (file_exists("$backupsPath/$file"))
+					if (file_exists($backupsPath . '/' . $file))
 					{
-						File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
+						File::move($backupsPath . '/' . $file, JPATH_ROOT . '/' . $file);
 					}
 
 					// If folder is empty, remove it as well
-					if (count(glob(JPATH_ROOT . "/$filePath/*")) === 0)
+					if (count(glob(JPATH_ROOT . '/' . $filePath . '/*')) === 0)
 					{
-						Folder::delete(JPATH_ROOT . "/$filePath");
+						Folder::delete(JPATH_ROOT . '/' . $filePath);
 					}
 				}
 				// Move from backup, if file exists there - got deleted by patch
-				elseif (file_exists("$backupsPath/$file"))
+				elseif (file_exists($backupsPath . '/' . $file))
 				{
-					if (!file_exists(JPATH_ROOT . "/$filePath"))
+					if (!file_exists(JPATH_ROOT . '/' . $filePath))
 					{
-						Folder::create(JPATH_ROOT . "/$filePath");
+						Folder::create(JPATH_ROOT . '/' . $filePath);
 					}
 
-					File::move("$backupsPath/$file", JPATH_ROOT . "/$file");
+					File::move($backupsPath . '/' . $file, JPATH_ROOT . '/' . $file);
 				}
 			}
-			catch (\RuntimeException $e)
+			catch (RuntimeException $exception)
 			{
-				throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_FAILED_REVERT_PATCH', $file, $e->getMessage()));
+				throw new RuntimeException(
+					Text::sprintf('COM_PATCHTESTER_FAILED_REVERT_PATCH', $file, $exception->getMessage())
+				);
 			}
 		}
 
@@ -739,6 +846,78 @@ class PullModel extends AbstractModel
 	}
 
 	/**
+	 * Retrieves test data from database by specific id
+	 *
+	 * @param   integer  $id  ID of the record
+	 *
+	 * @return  stdClass  $testRecord  The record looking for
+	 *
+	 * @since   3.0.0
+	 */
+	private function getTestRecord(int $id): stdClass
+	{
+		$db = $this->getDb();
+
+		return $db->setQuery(
+			$db->getQuery(true)
+				->select('*')
+				->from('#__patchtester_tests')
+				->where('id = ' . (int) $id)
+		)->loadObject();
+	}
+
+	/**
+	 * Removes the last value of the chain
+	 *
+	 * @param   integer  $insertId  ID of the patch in the database
+	 *
+	 * @return  void
+	 *
+	 * @since   3.0.0
+	 */
+	private function removeLastChain(int $insertId): void
+	{
+		$db = $this->getDb();
+
+		$db->setQuery(
+			$db->getQuery(true)
+				->delete('#__patchtester_chain')
+				->where('insert_id = ' . (int) $insertId)
+		)->execute();
+	}
+
+	/**
+	 * Remove the database record for a test
+	 *
+	 * @param   stdClass  $testRecord  The record being deleted
+	 *
+	 * @return  boolean
+	 *
+	 * @since   3.0.0
+	 */
+	private function removeTest(stdClass $testRecord): bool
+	{
+		$db = $this->getDb();
+
+		// Remove the retrieved commit SHA from the pulls table for this item
+		$db->setQuery(
+			$db->getQuery(true)
+				->update('#__patchtester_pulls')
+				->set('sha = ' . $db->quote(''))
+				->where($db->quoteName('id') . ' = ' . (int) $testRecord->id)
+		)->execute();
+
+		// And delete the record from the tests table
+		$db->setQuery(
+			$db->getQuery(true)
+				->delete('#__patchtester_tests')
+				->where('id = ' . (int) $testRecord->id)
+		)->execute();
+
+		return true;
+	}
+
+	/**
 	 * Reverts the specified pull request with Github Requests
 	 *
 	 * @param   integer  $id  ID of the pull request to revert
@@ -746,9 +925,9 @@ class PullModel extends AbstractModel
 	 * @return  boolean
 	 *
 	 * @since   2.0
-	 * @throws  \RuntimeException
+	 * @throws  RuntimeException
 	 */
-	public function revertWithGitHub($id)
+	public function revertWithGitHub(int $id): bool
 	{
 		$testRecord = $this->getTestRecord($id);
 
@@ -758,11 +937,17 @@ class PullModel extends AbstractModel
 			return $this->removeTest($testRecord);
 		}
 
-		$files = json_decode($testRecord->data);
+		$files = json_decode($testRecord->data, false);
 
 		if (!$files)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_READING_DATABASE_TABLE', __METHOD__, htmlentities($testRecord->data)));
+			throw new RuntimeException(
+				Text::sprintf(
+					'COM_PATCHTESTER_ERROR_READING_DATABASE_TABLE',
+					__METHOD__,
+					htmlentities($testRecord->data)
+				)
+			);
 		}
 
 		foreach ($files as $file)
@@ -776,14 +961,16 @@ class PullModel extends AbstractModel
 
 					if (!File::copy($src, $dest))
 					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest));
+						throw new RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $src, $dest)
+						);
 					}
 
 					if (file_exists($src))
 					{
 						if (!File::delete($src))
 						{
-							throw new \RuntimeException(
+							throw new RuntimeException(
 								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $src)
 							);
 						}
@@ -798,7 +985,7 @@ class PullModel extends AbstractModel
 					{
 						if (!File::delete($src))
 						{
-							throw new \RuntimeException(
+							throw new RuntimeException(
 								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $src)
 							);
 						}
@@ -813,14 +1000,16 @@ class PullModel extends AbstractModel
 
 					if (!File::copy($originalSrc, $dest))
 					{
-						throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $originalSrc, $dest));
+						throw new RuntimeException(
+							Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_COPY_FILE', $originalSrc, $dest)
+						);
 					}
 
 					if (file_exists($originalSrc))
 					{
 						if (!File::delete($originalSrc))
 						{
-							throw new \RuntimeException(
+							throw new RuntimeException(
 								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $originalSrc)
 							);
 						}
@@ -830,7 +1019,7 @@ class PullModel extends AbstractModel
 					{
 						if (!File::delete($newSrc))
 						{
-							throw new \RuntimeException(
+							throw new RuntimeException(
 								Text::sprintf('COM_PATCHTESTER_ERROR_CANNOT_DELETE_FILE', $newSrc)
 							);
 						}
@@ -854,115 +1043,6 @@ class PullModel extends AbstractModel
 	}
 
 	/**
-	 * Remove the database record for a test
-	 *
-	 * @param   stdClass  $testRecord  The record being deleted
-	 *
-	 * @return  boolean
-	 *
-	 * @since   3.0.0
-	 */
-	private function removeTest($testRecord)
-	{
-		$db = $this->getDb();
-
-		// Remove the retrieved commit SHA from the pulls table for this item
-		$db->setQuery(
-			$db->getQuery(true)
-				->update('#__patchtester_pulls')
-				->set('sha = ' . $db->quote(''))
-				->where($db->quoteName('id') . ' = ' . (int) $testRecord->id)
-		)->execute();
-
-		// And delete the record from the tests table
-		$db->setQuery(
-			$db->getQuery(true)
-				->delete('#__patchtester_tests')
-				->where('id = ' . (int) $testRecord->id)
-		)->execute();
-
-		return true;
-	}
-
-	/**
-	 * Retrieves test data from database by specific id
-	 *
-	 * @param   integer  $id  ID of the record
-	 *
-	 * @return  stdClass  $testRecord  The record looking for
-	 *
-	 * @since   3.0.0
-	 */
-	private function getTestRecord($id)
-	{
-		$db = $this->getDb();
-
-		return $db->setQuery(
-			$db->getQuery(true)
-				->select('*')
-				->from('#__patchtester_tests')
-				->where('id = ' . (int) $id)
-		)->loadObject();
-	}
-
-	/**
-	 * Retrieves a list of patches in chain
-	 *
-	 * @return  mixed
-	 *
-	 * @since   3.0
-	 */
-	private function getPatchChains()
-	{
-		$db = $this->getDb();
-
-		$db->setQuery(
-			$db->getQuery(true)
-				->select('*')
-				->from($db->quoteName('#__patchtester_chain'))
-				->order('id DESC')
-		);
-
-		return $db->loadObjectList('pull_id');
-	}
-
-	/**
-	 * Returns a chain by specific value, returns the last
-	 * element on $id = -1 and the first on $id = null
-	 *
-	 * @param   integer  $id  specific id of a pull
-	 *
-	 * @return  stdClass  $chain  last chain of the table
-	 *
-	 * @since   3.0.0
-	 */
-	private function getPatchChain($id = null)
-	{
-		$db     = $this->getDb();
-
-		$query  = $db->getQuery(true)
-			->select('*')
-			->from('#__patchtester_chain');
-
-		if (!is_null($id) && $id !== -1)
-		{
-			$query = $query->where('insert_id =' . (int) $id);
-		}
-
-		if ($id === -1)
-		{
-			$query = $query->order('id DESC');
-		}
-
-		if (is_null($id))
-		{
-			$query = $query->order('id ASC');
-		}
-
-		return $db->setQuery($query, 0, 1)->loadObject();
-	}
-
-	/**
 	 * Returns a two dimensional array with applied patches
 	 * by the github or ci procedure
 	 *
@@ -971,7 +1051,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @since   3.0.0
 	 */
-	public function getPatchesDividedInProcs()
+	public function getPatchesDividedInProcs(): array
 	{
 		$db = $this->getDb();
 
@@ -989,46 +1069,23 @@ class PullModel extends AbstractModel
 	}
 
 	/**
-	 * Adds a value to the patch chain in the database
+	 * Retrieves a list of patches in chain
 	 *
-	 * @param   integer  $insertId  ID of the patch in the database
-	 * @param   integer  $pullId    ID of the pull request
+	 * @return  array List of pull IDs
 	 *
-	 * @return  integer  $insertId  last inserted element
-	 *
-	 * @since   3.0.0
+	 * @since   3.0
 	 */
-	private function appendPatchChain($insertId, $pullId)
-	{
-		$record = (object) array(
-			'insert_id'       => $insertId,
-			'pull_id'         => $pullId,
-		);
-
-		$db = $this->getDb();
-
-		$db->insertObject('#__patchtester_chain', $record);
-
-		return $db->insertid();
-	}
-
-	/**
-	 * Removes the last value of the chain
-	 *
-	 * @param   integer  $insertId  ID of the patch in the database
-	 *
-	 * @return  void
-	 *
-	 * @since   3.0.0
-	 */
-	private function removeLastChain($insertId)
+	private function getPatchChains(): array
 	{
 		$db = $this->getDb();
 
 		$db->setQuery(
 			$db->getQuery(true)
-				->delete('#__patchtester_chain')
-				->where('insert_id = ' . (int) $insertId)
-		)->execute();
+				->select('*')
+				->from($db->quoteName('#__patchtester_chain'))
+				->order('id DESC')
+		);
+
+		return $db->loadObjectList('pull_id');
 	}
 }
