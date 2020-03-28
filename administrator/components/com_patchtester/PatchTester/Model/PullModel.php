@@ -265,10 +265,10 @@ class PullModel extends AbstractModel
 		// Write or create patch chain for correct order of patching
 		$this->appendPatchChain($lastInserted, $id);
 
-		// On Joomla 4 or later, remove the autoloader file
-		if (file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		// Remove the autoloader file
+		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
 		{
-			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
+			File::delete(JPATH_CACHE . '/autoload_psr4.php');
 		}
 
 		// Change the media version
@@ -590,10 +590,10 @@ class PullModel extends AbstractModel
 
 		$this->saveAppliedPatch($pull->number, $parsedFiles, $pull->head->sha);
 
-		// On Joomla 4 or later, remove the autoloader file
-		if (file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		// Remove the autoloader file
+		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
 		{
-			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
+			File::delete(JPATH_CACHE . '/autoload_psr4.php');
 		}
 
 		// Change the media version
@@ -831,9 +831,9 @@ class PullModel extends AbstractModel
 		Folder::delete($backupsPath);
 
 		// Remove the autoloader file
-		if (file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
 		{
-			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
+			File::delete(JPATH_CACHE . '/autoload_psr4.php');
 		}
 
 		// Change the media version
@@ -1028,9 +1028,9 @@ class PullModel extends AbstractModel
 		}
 
 		// Remove the autoloader file
-		if (file_exists(JPATH_LIBRARIES . '/autoload_psr4.php'))
+		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
 		{
-			File::delete(JPATH_LIBRARIES . '/autoload_psr4.php');
+			File::delete(JPATH_CACHE . '/autoload_psr4.php');
 		}
 
 		// Change the media version
