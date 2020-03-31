@@ -31,7 +31,7 @@ class ResetController extends AbstractController
 	 *
 	 * @since   2.0
 	 */
-	public function execute()
+	public function execute(): void
 	{
 		try
 		{
@@ -43,12 +43,12 @@ class ResetController extends AbstractController
 			$testsModel = new TestsModel(null, Factory::getDbo());
 
 			// Check the applied patches in the database first
-			$appliedPatches = $pullModel->getPatchesDividedInProcs();
+			$appliedPatches = $testsModel->getAppliedPatches();
 
 			if (count($appliedPatches['git']))
 			{
 				// Let's try to cleanly revert all applied patches
-				foreach ($appliedPatches['git'] as $patch)
+				foreach ($appliedPatches as $patch)
 				{
 					try
 					{

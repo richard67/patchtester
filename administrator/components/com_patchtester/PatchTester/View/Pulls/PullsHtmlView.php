@@ -87,7 +87,7 @@ class PullsHtmlView extends DefaultHtmlView
 			$this->envErrors[] = Text::_('COM_PATCHTESTER_REQUIREMENT_OPENSSL');
 		}
 
-		if (!in_array('https', stream_get_wrappers()))
+		if (!in_array('https', stream_get_wrappers(), true))
 		{
 			$this->envErrors[] = Text::_('COM_PATCHTESTER_REQUIREMENT_HTTPS');
 		}
@@ -123,7 +123,7 @@ class PullsHtmlView extends DefaultHtmlView
 	 *
 	 * @since   2.0
 	 */
-	protected function addToolbar()
+	protected function addToolbar(): void
 	{
 		ToolbarHelper::title(Text::_('COM_PATCHTESTER'), 'patchtester icon-apply');
 

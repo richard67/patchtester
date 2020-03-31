@@ -18,11 +18,11 @@ class TestsModel extends AbstractModel
 	/**
 	 * Retrieves a list of applied patches
 	 *
-	 * @return  mixed
+	 * @return  array List of applied patches
 	 *
 	 * @since   2.0
 	 */
-	public function getAppliedPatches()
+	public function getAppliedPatches(): array
 	{
 		$db = $this->getDb();
 
@@ -43,7 +43,7 @@ class TestsModel extends AbstractModel
 	 *
 	 * @since   2.0
 	 */
-	public function truncateTable()
+	public function truncateTable(): void
 	{
 		$this->getDb()->truncateTable('#__patchtester_tests');
 	}
