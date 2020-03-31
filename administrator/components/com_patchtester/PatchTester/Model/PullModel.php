@@ -124,7 +124,7 @@ class PullModel extends AbstractModel
 			throw new RuntimeException(Text::_('COM_PATCHTESTER_REPO_IS_GONE'));
 		}
 
-		$sha  = $pull->head->sha;
+		$sha = $pull->head->sha;
 
 		// Create tmp folder if it does not exist
 		if (!file_exists($ciSettings->get('folder.temp')))
@@ -191,8 +191,16 @@ class PullModel extends AbstractModel
 		// Remove zip to avoid get listing afterwards
 		File::delete($zipPath);
 
+		// Verify the composer autoloader for any invalid entries
+		if ($this->verifyAutoloader($tempPath) === false)
+		{
+			// There is something broken in the autoloader, clean up and go back
+			Folder::delete($tempPath);
+			throw new RuntimeException(Text::_('COM_PATCHTESTER_PATCH_BREAKS_SITE'));
+		}
+
 		// Get files from deleted_logs
-		$deletedFiles = (file_exists($delLogPath) ? file($delLogPath) : array());
+		$deletedFiles = (file_exists($delLogPath) ? file($delLogPath) : []);
 		$deletedFiles = array_map('trim', $deletedFiles);
 
 		if (file_exists($delLogPath))
@@ -330,6 +338,65 @@ class PullModel extends AbstractModel
 		}
 
 		return $pull;
+	}
+
+	/**
+	 * Verify if the autoload contains any broken entries.
+	 *
+	 * @param   string  $path  The path to look for the autoloader
+	 *
+	 * @return  boolean  True if there are broken dependencies | False otherwise.
+	 *
+	 * @since   4.0.0
+	 */
+	private function verifyAutoloader(string $path): bool
+	{
+		$result        = false;
+		$autoloadClass = false;
+
+		// Check if we have an autoload file
+		if (!file_exists($path . '/libraries/vendor/autoload.php'))
+		{
+			return $result;
+		}
+
+		// Get the generated token
+		$autoload    = file_get_contents($path . '/libraries/vendor/autoload.php');
+		$resultMatch = preg_match('/ComposerAutoloaderInit(.*)::/', $autoload, $match);
+
+		if (!$resultMatch)
+		{
+			return $result;
+		}
+
+		// Load the static autoloader
+		require_once $path . '/libraries/vendor/composer/autoload_static.php';
+		$autoloadClass = '\Composer\Autoload\ComposerStaticInit' . $match[1];
+
+		// Get all the files
+		$files = $autoloadClass::$files;
+
+		// Verify all the files exist
+		foreach ($files as $file)
+		{
+			// Fix the filepath to use the Joomla filesystem
+			$file = str_ireplace($path, JPATH_SITE, $file);
+
+			if (!file_exists($file))
+			{
+				$result = false;
+			}
+		}
+
+		// Load the files loader
+
+		// Load the classmap loader
+
+		// Load the namespaces loader
+
+		// Load the PSR-4 loader
+
+		return $result;
 	}
 
 	/**
@@ -497,7 +564,7 @@ class PullModel extends AbstractModel
 			// We only create a backup if the file already exists
 			if ($file->action === 'deleted'
 				|| (file_exists(JPATH_ROOT . '/' . $file->filename)
-				&& $file->action === 'modified')
+					&& $file->action === 'modified')
 				|| (file_exists(JPATH_ROOT . '/' . $file->originalFile) && $file->action === 'renamed'))
 			{
 				$filename = $file->action === 'renamed' ? $file->originalFile : $file->filename;
