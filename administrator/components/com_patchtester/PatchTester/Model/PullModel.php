@@ -360,43 +360,85 @@ class PullModel extends AbstractModel
 			return $result;
 		}
 
-		// Get the generated token
-		$autoload    = file_get_contents($path . '/libraries/vendor/autoload.php');
-		$resultMatch = preg_match('/ComposerAutoloaderInit(.*)::/', $autoload, $match);
+		$composerFiles = [
+			'autoload_static.php',
+			'autoload_files.php',
+			'autoload_classmap.php',
+			'autoload_namespaces.php',
+			'autoload_psr4.php',
+		];
+		$filesToCheck  = [];
 
-		if (!$resultMatch)
-		{
-			return $result;
-		}
+		array_walk(
+			$composerFiles,
+			static function ($composerFile) use (&$filesToCheck, $path) {
+				if (file_exists($path . '/libraries/vendor/composer/' . $composerFile) === false)
+				{
+					return;
+				}
 
-		// Load the static autoloader
-		require_once $path . '/libraries/vendor/composer/autoload_static.php';
-		$autoloadClass = '\Composer\Autoload\ComposerStaticInit' . $match[1];
+				if ($composerFile === 'autoload_static.php')
+				{
+					// Get the generated token
+					$autoload    = file_get_contents($path . '/libraries/vendor/autoload.php');
+					$resultMatch = preg_match('/ComposerAutoloaderInit(.*)::/', $autoload, $match);
 
-		// Get all the files
-		$files = $autoloadClass::$files;
+					if (!$resultMatch)
+					{
+						return;
+					}
 
-		// Verify all the files exist
+					require_once $path . '/libraries/vendor/composer/autoload_static.php';
+					$autoloadClass = '\Composer\Autoload\ComposerStaticInit' . $match[1];
+
+					// Get all the files
+					$files = $autoloadClass::$files;
+
+					$filesToCheck = array_merge($filesToCheck, $files);
+				}
+				else
+				{
+					$files = require $path . '/libraries/vendor/composer/' . $composerFile;
+
+					$filesToCheck = array_merge($filesToCheck, $files);
+				}
+			}
+		);
+
+		return $this->checkFilesExist($filesToCheck, $path);
+	}
+
+	/**
+	 * Check a list of files if they exist.
+	 *
+	 * @param   array   $files  The list of files to check
+	 * @param   string  $path   The path where the temporary patch resides
+	 *
+	 * @return  boolean  True if all files exist | False otherwise.
+	 *
+	 * @since   4.0.0
+	 */
+	private function checkFilesExist(array $files, string $path): bool
+	{
 		foreach ($files as $file)
 		{
-			// Fix the filepath to use the Joomla filesystem
-			$file = str_ireplace($path, JPATH_SITE, $file);
-
-			if (!file_exists($file))
+			if (is_array($file))
 			{
-				$result = false;
+				$this->checkFilesExist($file, $path);
+			}
+			elseif (!file_exists($file))
+			{
+				// Check if the file exists in the Joomla filesystem
+				$file = str_ireplace($path, JPATH_SITE, $file);
+
+				if (!file_exists($file))
+				{
+					return false;
+				}
 			}
 		}
 
-		// Load the files loader
-
-		// Load the classmap loader
-
-		// Load the namespaces loader
-
-		// Load the PSR-4 loader
-
-		return $result;
+		return true;
 	}
 
 	/**
