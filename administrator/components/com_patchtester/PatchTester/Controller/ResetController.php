@@ -45,7 +45,7 @@ class ResetController extends AbstractController
 			// Check the applied patches in the database first
 			$appliedPatches = $testsModel->getAppliedPatches();
 
-			if (count($appliedPatches['git']))
+			if (is_array($appliedPatches['git']) && count($appliedPatches['git']))
 			{
 				// Let's try to cleanly revert all applied patches
 				foreach ($appliedPatches as $patch)
@@ -61,7 +61,7 @@ class ResetController extends AbstractController
 				}
 			}
 
-			if (count($appliedPatches['ci']))
+			if (is_array($appliedPatches['ci']) && count($appliedPatches['ci']))
 			{
 				// Let's try to cleanly revert all applied patches with ci
 				foreach ($appliedPatches['ci'] as $patch)
