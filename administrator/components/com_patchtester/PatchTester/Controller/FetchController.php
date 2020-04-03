@@ -78,15 +78,13 @@ class FetchController extends AbstractController
 		{
 			$session->set('com_patchtester_fetcher_page', $status['page']);
 
+			$message = Text::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', $status['page']);
+
 			if ($session->has('com_patchtester_fetcher_last_page'))
 			{
 				$message = Text::sprintf(
 					'COM_PATCHTESTER_FETCH_PAGE_NUMBER_OF_TOTAL', $status['page'], $session->get('com_patchtester_fetcher_last_page')
 				);
-			}
-			else
-			{
-				$message = Text::sprintf('COM_PATCHTESTER_FETCH_PAGE_NUMBER', $status['page']);
 			}
 		}
 
