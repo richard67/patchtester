@@ -124,7 +124,7 @@ class PullModel extends AbstractModel
 			throw new RuntimeException(Text::_('COM_PATCHTESTER_REPO_IS_GONE'));
 		}
 
-		$sha  = $pull->head->sha;
+		$sha = $pull->head->sha;
 
 		// Create tmp folder if it does not exist
 		if (!file_exists($ciSettings->get('folder.temp')))
@@ -191,8 +191,16 @@ class PullModel extends AbstractModel
 		// Remove zip to avoid get listing afterwards
 		File::delete($zipPath);
 
+		// Verify the composer autoloader for any invalid entries
+		if ($this->verifyAutoloader($tempPath) === false)
+		{
+			// There is something broken in the autoloader, clean up and go back
+			Folder::delete($tempPath);
+			throw new RuntimeException(Text::_('COM_PATCHTESTER_PATCH_BREAKS_SITE'));
+		}
+
 		// Get files from deleted_logs
-		$deletedFiles = (file_exists($delLogPath) ? file($delLogPath) : array());
+		$deletedFiles = (file_exists($delLogPath) ? file($delLogPath) : []);
 		$deletedFiles = array_map('trim', $deletedFiles);
 
 		if (file_exists($delLogPath))
@@ -330,6 +338,106 @@ class PullModel extends AbstractModel
 		}
 
 		return $pull;
+	}
+
+	/**
+	 * Verify if the autoload contains any broken entries.
+	 *
+	 * @param   string  $path  The path to look for the autoloader
+	 *
+	 * @return  boolean  True if there are broken dependencies | False otherwise.
+	 *
+	 * @since   4.0.0
+	 */
+	private function verifyAutoloader(string $path): bool
+	{
+		$result = false;
+
+		// Check if we have an autoload file
+		if (!file_exists($path . '/libraries/vendor/autoload.php'))
+		{
+			return $result;
+		}
+
+		$composerFiles = [
+			'autoload_static.php',
+			'autoload_files.php',
+			'autoload_classmap.php',
+			'autoload_namespaces.php',
+			'autoload_psr4.php',
+		];
+		$filesToCheck  = [];
+
+		array_walk(
+			$composerFiles,
+			static function ($composerFile) use (&$filesToCheck, $path) {
+				if (file_exists($path . '/libraries/vendor/composer/' . $composerFile) === false)
+				{
+					return;
+				}
+
+				if ($composerFile === 'autoload_static.php')
+				{
+					// Get the generated token
+					$autoload    = file_get_contents($path . '/libraries/vendor/autoload.php');
+					$resultMatch = preg_match('/ComposerAutoloaderInit(.*)::/', $autoload, $match);
+
+					if (!$resultMatch)
+					{
+						return;
+					}
+
+					require_once $path . '/libraries/vendor/composer/autoload_static.php';
+					$autoloadClass = '\Composer\Autoload\ComposerStaticInit' . $match[1];
+
+					// Get all the files
+					$files = $autoloadClass::$files;
+
+					$filesToCheck = array_merge($filesToCheck, $files);
+				}
+				else
+				{
+					$files = require $path . '/libraries/vendor/composer/' . $composerFile;
+
+					$filesToCheck = array_merge($filesToCheck, $files);
+				}
+			}
+		);
+
+		return $this->checkFilesExist($filesToCheck, $path);
+	}
+
+	/**
+	 * Check a list of files if they exist.
+	 *
+	 * @param   array   $files  The list of files to check
+	 * @param   string  $path   The path where the temporary patch resides
+	 *
+	 * @return  boolean  True if all files exist | False otherwise.
+	 *
+	 * @since   4.0.0
+	 */
+	private function checkFilesExist(array $files, string $path): bool
+	{
+		foreach ($files as $file)
+		{
+			if (is_array($file))
+			{
+				$this->checkFilesExist($file, $path);
+			}
+			elseif (!file_exists($file))
+			{
+				// Check if the file exists in the Joomla filesystem
+				$file = str_ireplace($path, JPATH_SITE, $file);
+
+				if (!file_exists($file))
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -497,7 +605,7 @@ class PullModel extends AbstractModel
 			// We only create a backup if the file already exists
 			if ($file->action === 'deleted'
 				|| (file_exists(JPATH_ROOT . '/' . $file->filename)
-				&& $file->action === 'modified')
+					&& $file->action === 'modified')
 				|| (file_exists(JPATH_ROOT . '/' . $file->originalFile) && $file->action === 'renamed'))
 			{
 				$filename = $file->action === 'renamed' ? $file->originalFile : $file->filename;
