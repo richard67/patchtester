@@ -28,8 +28,8 @@ $searchToolsOptions = array(
 
 HTMLHelper::_('behavior.core');
 HTMLHelper::_('searchtools.form', '#adminForm', $searchToolsOptions);
-HTMLHelper::_('stylesheet', 'com_patchtester/octicons.css', array('version' => '3.5.0', 'relative' => true));
-HTMLHelper::_('script', 'com_patchtester/patchtester.js', array('version' => 'auto', 'relative' => true));
+HTMLHelper::_('stylesheet', 'com_patchtester/octicons.css', ['version' => '3.5.0', 'relative' => true]);
+HTMLHelper::_('script', 'com_patchtester/patchtester.js', ['version' => 'auto', 'relative' => true]);
 
 $listOrder     = $this->escape($this->state->get('list.fullordering', 'a.pull_id DESC'));
 $listLimit     = (int) ($this->state->get('list.limit'));
