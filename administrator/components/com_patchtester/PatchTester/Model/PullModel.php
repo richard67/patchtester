@@ -351,8 +351,7 @@ class PullModel extends AbstractModel
 	 */
 	private function verifyAutoloader(string $path): bool
 	{
-		$result        = false;
-		$autoloadClass = false;
+		$result = false;
 
 		// Check if we have an autoload file
 		if (!file_exists($path . '/libraries/vendor/autoload.php'))
