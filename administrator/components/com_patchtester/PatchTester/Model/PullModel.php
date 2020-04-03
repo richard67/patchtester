@@ -387,8 +387,15 @@ class PullModel extends AbstractModel
 						return;
 					}
 
-					require_once $path . '/libraries/vendor/composer/autoload_static.php';
+					// Check if the class is already defined
 					$autoloadClass = '\Composer\Autoload\ComposerStaticInit' . $match[1];
+
+					if (class_exists($autoloadClass))
+					{
+						return;
+					}
+
+					require_once $path . '/libraries/vendor/composer/autoload_static.php';
 
 					// Get all the files
 					$files = $autoloadClass::$files;
