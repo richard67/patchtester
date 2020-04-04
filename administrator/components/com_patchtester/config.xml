@@ -106,7 +106,7 @@
 				label="COM_PATCHTESTER_FIELD_CI_SERVER_NAME"
 				description="COM_PATCHTESTER_FIELD_CI_SERVER_NAME_DESC"
 				autocomplete="off"
-				default="https://ci.joomla.org:444"
+				default="https://ci.joomla.org"
 		/>
 
 		<field
@@ -114,7 +114,7 @@
 				type="list"
 				label="COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH"
 				description="COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH_DESC"
-				default="1"
+				default="0"
 		>
 			<option value="1">COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH_OPTION_ON</option>
 			<option value="0">COM_PATCHTESTER_FIELD_CI_SERVER_SWITCH_OPTION_OFF</option>

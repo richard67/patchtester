@@ -426,6 +426,8 @@ class PullModel extends AbstractModel
 	 */
 	private function checkFilesExist(array $files, string $path): bool
 	{
+		$path = Path::clean($path);
+
 		foreach ($files as $file)
 		{
 			if (is_array($file))
@@ -700,7 +702,7 @@ class PullModel extends AbstractModel
 	 *
 	 * @since   3.0.0
 	 */
-	protected function parseFileList(stdClass $files): array
+	private function parseFileList(array $files): array
 	{
 		$parsedFiles = array();
 
@@ -777,7 +779,7 @@ class PullModel extends AbstractModel
 		$params = ComponentHelper::getParams('com_patchtester');
 
 		// Decide based on repository settings whether patch will be applied through Github or CIServer
-		if (((bool) $params->get('ci_switch', 1) || $id === $this->getPatchChain($id)->insert_id))
+		if ((bool) $params->get('ci_switch', 1))
 		{
 			return $this->revertWithCIServer($id);
 		}
