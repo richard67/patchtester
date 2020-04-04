@@ -58,8 +58,8 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 					echo '<h1><img src="../media/com_patchtester/images/icon-48-patchtester.png"> ' . Text::_('COM_PATCHTESTER') . '</h1>';
 					echo '<p>' . Text::_('COM_PATCHTESTER_XML_DESCRIPTION') . '</p>';
 					echo '<p>' . Text::_('COM_PATCHTESTER_GOTO') . ' <a href="index.php?option=com_patchtester">' . Text::_('COM_PATCHTESTER') . '</a></p>';
-					//echo '<p>' . Text::_('COM_PATCHTESTER_GOTO') . ' <a href="index.php?option=com_config&view=component&component=com_patchtester#authentication	&path=&return=aHR0cDovL2xvY2FsaG9zdC9wYXRjaDRhMTIvYWRtaW5pc3RyYXRvci9pbmRleC5waHA%2Fb3B0aW9uPWNvbV9wYXRjaHRlc3Rlcg%3D%3D">' . Text::_('COM_PATCHTESTER_OPTIONS') . '</a></p>';
-					echo '<p>' . Text::_('COM_PATCHTESTER_GOTO') . ' <a href="index.php?option=com_config&view=component&component=com_patchtester#authentication">' . Text::_('COM_PATCHTESTER_OPTIONS') . '</a></p>';
+					echo '<p>' . Text::_('COM_PATCHTESTER_GOTO') . ' <a href="index.php?option=com_config&view=component&component=com_patchtester#authentication	&path=&return=aHR0cDovL2xvY2FsaG9zdC9wYXRjaDRhMTIvYWRtaW5pc3RyYXRvci9pbmRleC5waHA%2Fb3B0aW9uPWNvbV9wYXRjaHRlc3Rlcg%3D%3D">' . Text::_('COM_PATCHTESTER_OPTIONS') . '</a></p>';
+
 
 			}
 	
