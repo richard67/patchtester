@@ -52,7 +52,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 	public function postflight($type, $parent)
 	{
 		$this->removeFiles();
-		
+
 		if ($type == 'install')
 		{
 			$language = JFactory::getLanguage();
@@ -63,7 +63,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 			<p><?php echo Text::_('COM_PATCHTESTER_XML_DESCRIPTION'); ?></p>
 			<p><?php echo Text::_('COM_PATCHTESTER_GOTO_PATCHTESTER'); ?></a></p>
 			<p><?php echo Text::_('COM_PATCHTESTER_GOTO_PATCHTESTER_OPTIONS'); ?></a></p>
-           <?php
+			<?php
 		}
 
 		if ($type == 'uninstall')
@@ -74,7 +74,7 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 			?>
 			<h1><?php echo Text::_('COM_PATCHTESTER'); ?></h1>
 			<p><?php echo Text::_('COM_PATCHTESTER_UNINSTALL_THANK_YOU'); ?></p>
-           <?php
+			<?php
 		}
 	}
 }
