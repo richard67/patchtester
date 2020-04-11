@@ -6,9 +6,10 @@
  * @license    GNU General Public License version 2 or later
  */
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Installer\Adapter\ComponentAdapter;
 use Joomla\CMS\Installer\InstallerScript;
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
 /**
@@ -37,6 +38,70 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 			'/administrator/components/com_patchtester/PatchTester/Table',
 			'/components/com_patchtester',
 		);
+
+		Factory::getApplication()
+			->getLanguage()
+			->load('com_patchtester.sys', JPATH_ADMINISTRATOR, null, true);
+	}
+
+	/**
+	 * Show the message on install.
+	 *
+	 * @param   ComponentAdapter  $parent  The class calling this method
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0.0
+	 */
+	public function install(ComponentAdapter $parent): void
+	{
+		?>
+		<h1>
+			<?php echo HTMLHelper::_('image', 'media/com_patchtester/images/icon-48-patchtester.png', Text::_('COM_PATCHTESTER')); ?>
+			<?php echo Text::_('COM_PATCHTESTER'); ?>
+		</h1>
+		<p><?php echo Text::_('COM_PATCHTESTER_INSTALL_INSTRUCTIONS'); ?></p>
+		<?php
+	}
+
+	/**
+	 * Show the message on install.
+	 *
+	 * @param   ComponentAdapter  $parent  The class calling this method
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0.0
+	 */
+	public function update(ComponentAdapter $parent): void
+	{
+		?>
+		<h1>
+			<?php echo HTMLHelper::_('image', 'media/com_patchtester/images/icon-48-patchtester.png', Text::_('COM_PATCHTESTER')); ?>
+			<?php echo Text::_('COM_PATCHTESTER'); ?>
+		</h1>
+		<p><?php echo Text::_('COM_PATCHTESTER_UPDATE_INSTRUCTIONS'); ?></p>
+		<?php
+	}
+
+
+	/**
+	 * Show the message on install.
+	 *
+	 * @param   ComponentAdapter  $parent  The class calling this method
+	 *
+	 * @return  void
+	 *
+	 * @since   4.0.0
+	 */
+	public function uninstall(ComponentAdapter $parent): void
+	{
+		?>
+		<h1>
+			<?php echo HTMLHelper::_('image', 'media/com_patchtester/images/icon-48-patchtester.png', Text::_('COM_PATCHTESTER')); ?>
+		</h1>
+		<p><?php echo Text::_('COM_PATCHTESTER_UNINSTALL_THANK_YOU'); ?></p>
+		<?php
 	}
 
 	/**
@@ -49,32 +114,8 @@ class Com_PatchtesterInstallerScript extends InstallerScript
 	 *
 	 * @since   3.0.0
 	 */
-	public function postflight($type, $parent)
+	public function postflight(string $type, ComponentAdapter $parent): void
 	{
 		$this->removeFiles();
-
-		if ($type == 'install')
-		{
-			$language = JFactory::getLanguage();
-			$language->load('com_patchtester', JPATH_ADMINISTRATOR, null, true);
-			$language->load('com_patchtester', JPATH_SITE, null, true);
-			?>
-			<h1><img src="../media/com_patchtester/images/icon-48-patchtester.png"><?php echo Text::_('COM_PATCHTESTER'); ?></h1>
-			<p><?php echo Text::_('COM_PATCHTESTER_XML_DESCRIPTION'); ?></p>
-			<p><?php echo Text::_('COM_PATCHTESTER_GOTO_PATCHTESTER'); ?></a></p>
-			<p><?php echo Text::_('COM_PATCHTESTER_GOTO_PATCHTESTER_OPTIONS'); ?></a></p>
-			<?php
-		}
-
-		if ($type == 'uninstall')
-		{
-			$language = JFactory::getLanguage();
-			$language->load('com_patchtester', JPATH_ADMINISTRATOR, null, true);
-			$language->load('com_patchtester', JPATH_SITE, null, true);
-			?>
-			<h1><?php echo Text::_('COM_PATCHTESTER'); ?></h1>
-			<p><?php echo Text::_('COM_PATCHTESTER_UNINSTALL_THANK_YOU'); ?></p>
-			<?php
-		}
 	}
 }
