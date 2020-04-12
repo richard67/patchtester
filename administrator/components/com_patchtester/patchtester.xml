@@ -49,10 +49,6 @@
 			<filename>config.xml</filename>
 			<filename>patchtester.php</filename>
 		</files>
-		<languages folder="admin">
-		   <language tag="en-GB">language/en-GB/com_patchtester.ini</language>
-		   <language tag="en-GB">language/en-GB/com_patchtester.sys.ini</language>
-		</languages>		
 	</administration>
 	<updateservers>
 		<server type="extension" name="Patch Tester Component">https://raw.githubusercontent.com/joomla-extensions/patchtester/master/manifest.xml</server>
