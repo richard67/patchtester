@@ -1,8 +1,9 @@
 export_languages: ["en-GB"]
+base_path: /administrator/components/com_patchtester/language
 files:
-  - source: /administrator/components/com_patchtester/language/en-GB/com_patchtester.ini
-    translation: /administrator/components/com_patchtester/language/%locale%/com_patchtester.ini
+  - source: /en-GB/com_patchtester.ini
+    translation: /%locale%/com_patchtester.ini
     update_option: update_as_unapproved
-  - source: /administrator/components/com_patchtester/language/en-GB/com_patchtester.sys.ini
-    translation: /administrator/components/com_patchtester/language/%locale%/com_patchtester.sys.ini
+  - source: /en-GB/com_patchtester.sys.ini
+    translation: /%locale%/com_patchtester.sys.ini
     update_option: update_as_unapproved
