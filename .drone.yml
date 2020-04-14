@@ -20,6 +20,6 @@ steps:
       - echo $(date)
 ---
 kind: signature
-hmac: db121d6418e6f0702b311cce34d0a0dd12a4b88814138a4d1d02c1e6189e9d43
+hmac: c5899584898d37d46fb70cb22487532d41719c7a836be7f67ad4ac3c2267dafa
 
 ...
