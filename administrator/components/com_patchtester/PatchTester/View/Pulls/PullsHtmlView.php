@@ -133,7 +133,7 @@ class PullsHtmlView extends DefaultHtmlView
 
 			$toolbar->appendButton(
 				'Popup',
-				'refresh',
+				'sync',
 				'COM_PATCHTESTER_TOOLBAR_FETCH_DATA',
 				'index.php?option=com_patchtester&view=fetch&tmpl=component',
 				500,
@@ -145,7 +145,7 @@ class PullsHtmlView extends DefaultHtmlView
 			);
 
 			// Add a reset button.
-			$toolbar->appendButton('Standard', 'expired', 'COM_PATCHTESTER_TOOLBAR_RESET', 'reset', false);
+			$toolbar->appendButton('Standard', 'minus-circle', 'COM_PATCHTESTER_TOOLBAR_RESET', 'reset', false);
 		}
 
 		ToolbarHelper::preferences('com_patchtester');
