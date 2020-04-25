@@ -576,7 +576,7 @@ class PullModel extends AbstractModel
 					{
 						$contentsResponse = $github->getFileContents(
 							$pull->head->user->login,
-							$this->getState()->get('github_repo'),
+							$pull->head->repo->name,
 							$file->repofilename,
 							urlencode($pull->head->ref)
 						);
