@@ -8,6 +8,7 @@
 
 namespace PatchTester\Controller;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Language\Text;
@@ -45,14 +46,17 @@ class ResetController extends AbstractController
 			// Check the applied patches in the database first
 			$appliedPatches = $testsModel->getAppliedPatches();
 
-			if (is_array($appliedPatches['git']) && count($appliedPatches['git']))
+			$params = ComponentHelper::getParams('com_patchtester');
+
+			// Decide based on repository settings whether patch will be applied through Github or CIServer
+			if ((bool) $params->get('ci_switch', 1))
 			{
-				// Let's try to cleanly revert all applied patches
+				// Let's try to cleanly revert all applied patches with ci
 				foreach ($appliedPatches as $patch)
 				{
 					try
 					{
-						$pullModel->revertWithGitHub($patch->id);
+						$pullModel->revertWithCIServer($patch->id);
 					}
 					catch (\RuntimeException $e)
 					{
@@ -60,15 +64,14 @@ class ResetController extends AbstractController
 					}
 				}
 			}
-
-			if (is_array($appliedPatches['ci']) && count($appliedPatches['ci']))
+			else
 			{
-				// Let's try to cleanly revert all applied patches with ci
-				foreach ($appliedPatches['ci'] as $patch)
+				// Let's try to cleanly revert all applied patches
+				foreach ($appliedPatches as $patch)
 				{
 					try
 					{
-						$pullModel->revertWithCIServer($patch->insert_id);
+						$pullModel->revertWithGitHub($patch->id);
 					}
 					catch (\RuntimeException $e)
 					{
@@ -140,9 +143,9 @@ class ResetController extends AbstractController
 				$type = 'notice';
 			}
 		}
-		catch (\Exception $e)
+		catch (\Exception $exception)
 		{
-			$msg  = $e->getMessage();
+			$msg  = $exception->getMessage();
 			$type = 'error';
 		}
 
