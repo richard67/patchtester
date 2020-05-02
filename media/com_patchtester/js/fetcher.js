@@ -52,6 +52,10 @@ if (typeof Joomla === 'undefined') {
                             throw response;
                         }
 
+                        if (response.success === false) {
+                            throw response;
+                        }
+
                         // Store the last page if it is part of this request and not a boolean false
                         if (typeof response.data.lastPage !== 'undefined' && response.data.lastPage !== false) {
                             lastPage = response.data.lastPage;
@@ -90,7 +94,7 @@ if (typeof Joomla === 'undefined') {
                         }
                     } catch (error) {
                         try {
-                            if (response.error) {
+                            if (response.error || response.success === false) {
                                 jQuery('#patchtester-progress-header').text(Joomla.JText._('COM_PATCHTESTER_FETCH_AN_ERROR_HAS_OCCURRED'));
                                 jQuery('#patchtester-progress-message').html(response.message);
                             }
