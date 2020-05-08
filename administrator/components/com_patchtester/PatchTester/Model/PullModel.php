@@ -73,6 +73,29 @@ class PullModel extends AbstractModel
 	);
 
 	/**
+	 * The namespace mapper
+	 *
+	 * @var    \JNamespacePsr4Map
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $namespaceMapper;
+
+	/**
+	 * Instantiate the model.
+	 *
+	 * @param   Registry          $state  The model state.
+	 * @param   \JDatabaseDriver  $db     The database adpater.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function __construct(Registry $state = null, \JDatabaseDriver $db = null)
+	{
+		parent::__construct($state, $db);
+
+		$this->namespaceMapper = new \JNamespacePsr4Map;
+	}
+
+	/**
 	 * Patches the code with the supplied pull request
 	 * However uses different methods for different repositories.
 	 *
@@ -270,11 +293,8 @@ class PullModel extends AbstractModel
 
 		$this->saveAppliedPatch($id, $files, $sha);
 
-		// Remove the autoloader file
-		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
-		{
-			File::delete(JPATH_CACHE . '/autoload_psr4.php');
-		}
+		// Update the autoloader file
+		$this->namespaceMapper->create();
 
 		// Change the media version
 		$version = new Version;
@@ -680,11 +700,8 @@ class PullModel extends AbstractModel
 
 		$this->saveAppliedPatch($pull->number, $parsedFiles, $pull->head->sha);
 
-		// Remove the autoloader file
-		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
-		{
-			File::delete(JPATH_CACHE . '/autoload_psr4.php');
-		}
+		// Update the autoloader file
+		$this->namespaceMapper->create();
 
 		// Change the media version
 		$version = new Version;
@@ -871,11 +888,8 @@ class PullModel extends AbstractModel
 
 		Folder::delete($backupsPath);
 
-		// Remove the autoloader file
-		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
-		{
-			File::delete(JPATH_CACHE . '/autoload_psr4.php');
-		}
+		// Update the autoloader file
+		$this->namespaceMapper->create();
 
 		// Change the media version
 		$version = new Version;
@@ -1048,11 +1062,8 @@ class PullModel extends AbstractModel
 			}
 		}
 
-		// Remove the autoloader file
-		if (file_exists(JPATH_CACHE . '/autoload_psr4.php'))
-		{
-			File::delete(JPATH_CACHE . '/autoload_psr4.php');
-		}
+		// Update the autoloader file
+		$this->namespaceMapper->create();
 
 		// Change the media version
 		$version = new Version;
