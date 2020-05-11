@@ -8,6 +8,7 @@
 
 namespace PatchTester\View\Pulls;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Toolbar\Toolbar;
