@@ -145,7 +145,7 @@ class PullsHtmlView extends DefaultHtmlView
 			);
 
 			// Add a reset button.
-			$toolbar->appendButton('Standard', 'minus-circle', 'COM_PATCHTESTER_TOOLBAR_RESET', 'reset', false);
+			$toolbar->appendButton('Standard', 'expired', 'COM_PATCHTESTER_TOOLBAR_RESET', 'reset', false);
 		}
 
 		ToolbarHelper::preferences('com_patchtester');
