@@ -132,7 +132,7 @@ class PullsHtmlView extends DefaultHtmlView
 	 */
 	protected function addToolbar(): void
 	{
-		ToolbarHelper::title(Text::_('COM_PATCHTESTER'), 'patchtester icon-apply');
+		ToolbarHelper::title(Text::_('COM_PATCHTESTER'), 'patchtester fas fa-save');
 
 		if (!count($this->envErrors))
 		{
@@ -140,7 +140,7 @@ class PullsHtmlView extends DefaultHtmlView
 
 			$toolbar->appendButton(
 				'Popup',
-				'refresh',
+				'sync',
 				'COM_PATCHTESTER_TOOLBAR_FETCH_DATA',
 				'index.php?option=com_patchtester&view=fetch&tmpl=component',
 				500,
