@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `#__patchtester_pulls`
     `pull_url`    varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
     `sha`         varchar(40) COLLATE utf8mb4_unicode_ci  NOT NULL DEFAULT '',
     `is_rtc`      tinyint(1)                              NOT NULL DEFAULT 0,
-    `in_npm`      tinyint(1)                                       DEFAULT 0,
+    `is_npm`      tinyint(1)                                       DEFAULT 0,
     `branch`      varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
