@@ -107,6 +107,7 @@ class DisplayController extends AbstractController
 		$state->set('filter.applied', $app->getUserStateFromRequest($this->context . '.filter.applied', 'filter_applied', ''));
 		$state->set('filter.branch', $app->getUserStateFromRequest($this->context . '.filter.branch', 'filter_branch', ''));
 		$state->set('filter.rtc', $app->getUserStateFromRequest($this->context . '.filter.rtc', 'filter_rtc', ''));
+		$state->set('filter.npm', $app->getUserStateFromRequest($this->context . '.filter.npm', 'filter_npm', ''));
 
 		// Pre-fill the limits.
 		$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit', 20), 'uint');
@@ -128,7 +129,7 @@ class DisplayController extends AbstractController
 		// The 2nd part will be considered the direction
 		$direction = $orderingParts[array_key_last($orderingParts)];
 
-		if (in_array(strtoupper($direction), array('ASC', 'DESC', '')))
+		if (in_array(strtoupper($direction), ['ASC', 'DESC', '']))
 		{
 			$state->set('list.direction', $direction);
 		}

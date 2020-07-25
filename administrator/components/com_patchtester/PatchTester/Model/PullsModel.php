@@ -63,7 +63,6 @@ class PullsModel extends AbstractModel
 	 */
 	public function getBranches()
 	{
-		// Create a new query object.
 		$db    = $this->getDb();
 		$query = $db->getQuery(true);
 
@@ -85,17 +84,32 @@ class PullsModel extends AbstractModel
 	 */
 	public function getItems()
 	{
-		// Get a storage key.
 		$store = $this->getStoreId();
 
-		// Try to load the data from internal storage.
 		if (isset($this->cache[$store]))
 		{
 			return $this->cache[$store];
 		}
 
-		// Load the list items and add the items to the internal cache.
-		$this->cache[$store] = $this->getList($this->getListQueryCache(), $this->getStart(), $this->getState()->get('list.limit'));
+		$items = $this->getList($this->getListQueryCache(), $this->getStart(), $this->getState()->get('list.limit'));
+
+		$db    = $this->getDb();
+		$query = $db->getQuery(true)
+			->select($db->quoteName(['name', 'color']))
+			->from($db->quoteName('#__patchtester_pulls_labels'));
+
+		array_walk(
+			$items,
+			static function ($item) use ($db, $query) {
+				$query->clear('where');
+				$query->where($db->quoteName('pull_id') . ' = ' . $item->pull_id);
+				$db->setQuery($query);
+
+				$item->labels = $db->loadObjectList();
+			}
+		);
+
+		$this->cache[$store] = $items;
 
 		return $this->cache[$store];
 	}
@@ -146,7 +160,7 @@ class PullsModel extends AbstractModel
 		if (!empty($applied))
 		{
 			// Not applied patches have a NULL value, so build our value part of the query based on this
-			$value = $applied == 'no' ? ' IS NULL' : ' = 1';
+			$value = $applied === 'no' ? ' IS NULL' : ' = 1';
 
 			$query->where($db->quoteName('applied') . $value);
 		}
@@ -165,9 +179,20 @@ class PullsModel extends AbstractModel
 		if (!empty($applied))
 		{
 			// Not applied patches have a NULL value, so build our value part of the query based on this
-			$value = $applied == 'no' ? '0' : '1';
+			$value = $applied === 'no' ? '0' : '1';
 
 			$query->where($db->quoteName('is_rtc') . ' = ' . $value);
+		}
+
+		// Filter for NPM patches
+		$npm = $this->getState()->get('filter.npm');
+
+		if (!empty($npm))
+		{
+			// Not applied patches have a NULL value, so build our value part of the query based on this
+			$value = $npm === 'no' ? '0' : '1';
+
+			$query->where($db->quoteName('is_npm') . ' = ' . $value);
 		}
 
 		// Handle the list ordering.
@@ -314,6 +339,7 @@ class PullsModel extends AbstractModel
 		if ($page === 1)
 		{
 			$this->getDb()->truncateTable('#__patchtester_pulls');
+			$this->getDb()->truncateTable('#__patchtester_pulls_labels');
 		}
 
 		try
@@ -327,9 +353,9 @@ class PullsModel extends AbstractModel
 
 			$pulls = json_decode($pullsResponse->body);
 		}
-		catch (UnexpectedResponse $e)
+		catch (UnexpectedResponse $exception)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_GITHUB_FETCH', $e->getMessage()), $e->getCode(), $e);
+			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_GITHUB_FETCH', $exception->getMessage()), $exception->getCode(), $exception);
 		}
 
 		// If this is page 1, let's check to see if we need to paginate
@@ -363,10 +389,11 @@ class PullsModel extends AbstractModel
 		// If there are no pulls to insert then bail, assume we're finished
 		if (count($pulls) === 0)
 		{
-			return array('complete' => true);
+			return ['complete' => true];
 		}
 
-		$data = array();
+		$data   = [];
+		$labels = [];
 
 		foreach ($pulls as $pull)
 		{
@@ -374,29 +401,44 @@ class PullsModel extends AbstractModel
 			{
 				// Check if this PR is RTC and has a `PR-` branch label
 				$isRTC  = false;
+				$isNPM  = false;
 				$branch = '';
 
 				foreach ($pull->labels as $label)
 				{
-					if ($label->name === 'RTC')
+					if (strtolower($label->name) === 'rtc')
 					{
 						$isRTC = true;
 					}
-					elseif (substr($label->name, 0, 3) === 'PR-')
+					elseif (strpos($label->name, 'PR-') === 0)
 					{
 						$branch = substr($label->name, 3);
 					}
+					elseif (strtolower($label->name) === 'npm resource changed')
+					{
+						$isNPM = true;
+					}
+
+					$labels[] = implode(
+						',',
+						[
+							(int) $pull->number,
+							$this->getDb()->quote($label->name),
+							$this->getDb()->quote($label->color)
+						]
+					);
 				}
 
 				// Build the data object to store in the database
-				$pullData = array(
+				$pullData = [
 					(int) $pull->number,
 					$this->getDb()->quote(HTMLHelper::_('string.truncate', $pull->title, 150)),
 					$this->getDb()->quote(HTMLHelper::_('string.truncate', $pull->body, 100)),
 					$this->getDb()->quote($pull->pull_request->html_url),
 					(int) $isRTC,
+					(int) $isNPM,
 					$this->getDb()->quote($branch),
-				);
+				];
 
 				$data[] = implode(',', $pullData);
 			}
@@ -411,7 +453,7 @@ class PullsModel extends AbstractModel
 		$this->getDb()->setQuery(
 			$this->getDb()->getQuery(true)
 				->insert('#__patchtester_pulls')
-				->columns(array('pull_id', 'title', 'description', 'pull_url', 'is_rtc', 'branch'))
+				->columns(['pull_id', 'title', 'description', 'pull_url', 'is_rtc', 'is_npm', 'branch'])
 				->values($data)
 		);
 
@@ -419,13 +461,47 @@ class PullsModel extends AbstractModel
 		{
 			$this->getDb()->execute();
 		}
-		catch (\RuntimeException $e)
+		catch (\RuntimeException $exception)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_INSERT_DATABASE', $e->getMessage()), $e->getCode(), $e);
+			throw new \RuntimeException(
+				Text::sprintf(
+					'COM_PATCHTESTER_ERROR_INSERT_DATABASE',
+					$exception->getMessage()
+				),
+				$exception->getCode(),
+				$exception
+			);
+		}
+
+		$this->getDb()->setQuery(
+			$this->getDb()->getQuery(true)
+				->insert('#__patchtester_pulls_labels')
+				->columns(['pull_id', 'name', 'color'])
+				->values($labels)
+		);
+
+		try
+		{
+			$this->getDb()->execute();
+		}
+		catch (\RuntimeException $exception)
+		{
+			throw new \RuntimeException(
+				Text::sprintf(
+					'COM_PATCHTESTER_ERROR_INSERT_DATABASE',
+					$exception->getMessage()
+				),
+				$exception->getCode(),
+				$exception
+			);
 		}
 
 		// Need to make another request
-		return array('complete' => false, 'page' => ($page + 1), 'lastPage' => isset($lastPage) ? $lastPage : false);
+		return [
+			'complete' => false,
+			'page'     => ($page + 1),
+			'lastPage' => $lastPage ?? false
+		];
 	}
 
 	/**

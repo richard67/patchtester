@@ -45,6 +45,44 @@ foreach ($this->items as $i => $item) :
 					</div>
 				<?php endif; ?>
 			</div>
+            <?php if (count($item->labels) > 0) : ?>
+            <div class="row">
+                <div class="col-md-auto">
+                <?php foreach ($item->labels as $label): ?>
+                    <?php
+                        switch (strtolower($label->name))
+                        {
+                            case 'a11y':
+                            case 'conflicting files':
+                            case 'documentation required':
+                            case 'information required':
+                            case 'j3 issue':
+	                        case 'language change':
+	                        case 'mysql 5.7':
+	                        case 'needs new owner':
+	                        case 'no code attached yet':
+	                        case 'pbf':
+                            case 'pr-3.9-dev':
+                            case 'pr-3.10-dev':
+                            case 'pr-4.1-dev':
+                            case 'pr-i10n_4.0-dev':
+	                        case 'pr-staging':
+                            case 'release blocker':
+                            case 'rfc':
+                            case 'test instructions missing':
+                            case 'updates requested':
+	                            $textColor = '000000';
+                                break;
+                            default:
+                                $textColor = 'FFFFFF';
+                                break;
+                        }
+                    ?>
+                    <span class="badge" style="color: #<?php echo $textColor; ?>; background-color: #<?php echo $label->color; ?>"><?php echo $label->name; ?></span>
+                <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 		</td>
 		<td class="d-none d-md-table-cell text-center">
 			<?php echo $this->escape($item->branch); ?>

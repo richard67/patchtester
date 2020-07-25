@@ -36,6 +36,7 @@ $listLimit     = (int) ($this->state->get('list.limit'));
 $filterApplied = $this->escape($this->state->get('filter.applied'));
 $filterBranch  = $this->escape($this->state->get('filter.branch'));
 $filterRtc     = $this->escape($this->state->get('filter.rtc'));
+$filterNpm     = $this->escape($this->state->get('filter.npm'));
 $visible       = '';
 
 if ($filterApplied || $filterBranch || $filterRtc)
@@ -109,6 +110,13 @@ if ($filterApplied || $filterBranch || $filterRtc)
 								<option value="no"<?php echo $filterRtc === 'no' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_NOT_RTC'); ?></option>
 							</select>
 						</div>
+                        <div class="js-stools-field-filter">
+                            <select name="filter_npm" class="custom-select" onchange="this.form.submit();">
+                                <option value=""><?php echo Text::_('COM_PATCHTESTER_FILTER_NPM_PATCHES'); ?></option>
+                                <option value="yes"<?php echo $filterNpm === 'yes' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_NPM'); ?></option>
+                                <option value="no"<?php echo $filterNpm === 'no' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_NOT_NPM'); ?></option>
+                            </select>
+                        </div>
 						<div class="js-stools-field-filter">
 							<select name="filter_branch" class="custom-select" onchange="this.form.submit();">
 								<option value=""><?php echo Text::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></option>
