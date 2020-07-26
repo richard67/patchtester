@@ -414,7 +414,7 @@ class PullsModel extends AbstractModel
 					{
 						$branch = substr($label->name, 3);
 					}
-					elseif (strtolower($label->name) === 'npm resource changed')
+					elseif (in_array(strtolower($label->name), ['npm resource changed', 'composer dependency changed'], true))
 					{
 						$isNPM = true;
 					}
