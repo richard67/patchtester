@@ -39,7 +39,7 @@ $filterRtc     = $this->escape($this->state->get('filter.rtc'));
 $filterNpm     = $this->escape($this->state->get('filter.npm'));
 $visible       = '';
 
-if ($filterApplied || $filterBranch || $filterRtc)
+if ($filterApplied || $filterBranch || $filterRtc || $filterNpm)
 {
 	$visible = 'js-stools-container-filters-visible';
 }
