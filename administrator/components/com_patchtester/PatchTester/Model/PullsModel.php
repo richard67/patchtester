@@ -348,14 +348,23 @@ class PullsModel extends AbstractModel
 			$batchSize = 100;
 
 			$pullsResponse = Helper::initializeGithub()->getOpenIssues(
-				$this->getState()->get('github_user'), $this->getState()->get('github_repo'), $page, $batchSize
+				$this->getState()->get('github_user'),
+				$this->getState()->get('github_repo'),
+				$page,
+				$batchSize
 			);
 
 			$pulls = json_decode($pullsResponse->body);
 		}
 		catch (UnexpectedResponse $exception)
 		{
-			throw new \RuntimeException(Text::sprintf('COM_PATCHTESTER_ERROR_GITHUB_FETCH', $exception->getMessage()), $exception->getCode(), $exception);
+			throw new \RuntimeException(
+				Text::sprintf('COM_PATCHTESTER_ERROR_GITHUB_FETCH',
+					$exception->getMessage()
+				),
+				$exception->getCode(),
+				$exception
+			);
 		}
 
 		// If this is page 1, let's check to see if we need to paginate
