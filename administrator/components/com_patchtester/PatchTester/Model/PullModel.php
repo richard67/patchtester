@@ -76,7 +76,7 @@ class PullModel extends AbstractModel
 	 * The namespace mapper
 	 *
 	 * @var    \JNamespacePsr4Map
-	 * @since  __DEPLOY_VERSION__
+	 * @since  4.0.0
 	 */
 	protected $namespaceMapper;
 
@@ -86,7 +86,7 @@ class PullModel extends AbstractModel
 	 * @param   Registry          $state  The model state.
 	 * @param   \JDatabaseDriver  $db     The database adpater.
 	 *
-	 * @since   __DEPLOY_VERSION__
+	 * @since   4.0.0
 	 */
 	public function __construct(Registry $state = null, \JDatabaseDriver $db = null)
 	{
