@@ -1,4 +1,5 @@
-Patch Tester [![Build Status](https://ci.joomla.org/api/badges/joomla-extensions/patchtester/status.svg)](https://ci.joomla.org/joomla-extensions/patchtester) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/joomla-patchtester/localized.svg)](https://crowdin.com/project/joomla-patchtester)
+Patch Tester [![Build Status](https://ci.joomla.org/api/badges/joomla-extensions/patchtester/status.svg)](https://ci.joomla.org/joomla-extensions/patchtester) 
+[![Crowdin](https://badges.crowdin.net/e/fc3dad2620189bfc76653c4d0b71c9ab/localized.svg)](https://joomla.crowdin.com/patch-tester-extension)
 =============
 
 * [In English](#license)
@@ -42,7 +43,7 @@ To use an account that has two factor authentication enabled, you'll have to [cr
 Translations
 =============
 
-Translations for the patch tester component are managed on [Crowdin](https://crowdin.com/project/joomla-patchtester).
+Translations for the patch tester component are managed on [Crowdin](https://joomla.crowdin.com/patch-tester-extension).
 
 
 fr-FR - Patch Tester en français
