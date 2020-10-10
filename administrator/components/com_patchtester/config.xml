@@ -55,7 +55,7 @@
 				type="list"
 				label="COM_PATCHTESTER_FIELD_GH_AUTH_LABEL"
 				description="COM_PATCHTESTER_FIELD_GH_AUTH_DESC"
-				default=""
+				default="token"
 				onchange="jQuery('#jform_gh_user, #jform_gh_password, #jform_gh_token').val('');"
 		>
 			<option value="">JNONE</option>
