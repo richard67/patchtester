@@ -32,7 +32,7 @@ class PullsHtmlView extends DefaultHtmlView
 	 * @var    array
 	 * @since  3.0.0
 	 */
-	protected $branches = array();
+	protected $branches = [];
 
 	/**
 	 * Array containing environment errors
@@ -40,7 +40,7 @@ class PullsHtmlView extends DefaultHtmlView
 	 * @var    array
 	 * @since  2.0
 	 */
-	protected $envErrors = array();
+	protected $envErrors = [];
 
 	/**
 	 * Array of open pull requests
@@ -167,7 +167,7 @@ class PullsHtmlView extends DefaultHtmlView
 	 */
 	protected function getLimitOptions()
 	{
-		return array(
+		return [
 			5   => Text::_('J5'),
 			10  => Text::_('J10'),
 			15  => Text::_('J15'),
@@ -179,7 +179,7 @@ class PullsHtmlView extends DefaultHtmlView
 			200 => Text::_('J200'),
 			500 => Text::_('J500'),
 			0   => Text::_('JALL'),
-		);
+		];
 	}
 
 	/**
@@ -191,11 +191,11 @@ class PullsHtmlView extends DefaultHtmlView
 	 */
 	protected function getSortFields()
 	{
-		return array(
+		return [
 			'a.title ASC'    => Text::_('JGLOBAL_TITLE_ASC'),
 			'a.title DESC'   => Text::_('JGLOBAL_TITLE_DESC'),
 			'a.pull_id ASC'  => Text::_('COM_PATCHTESTER_PULL_ID_ASC'),
 			'a.pull_id DESC' => Text::_('COM_PATCHTESTER_PULL_ID_DESC'),
-		);
+		];
 	}
 }
