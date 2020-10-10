@@ -459,15 +459,15 @@ class PullsModel extends AbstractModel
 			return array('complete' => true);
 		}
 
-		$this->getDb()->setQuery(
-			$this->getDb()->getQuery(true)
-				->insert('#__patchtester_pulls')
-				->columns(['pull_id', 'title', 'description', 'pull_url', 'is_rtc', 'is_npm', 'branch'])
-				->values($data)
-		);
-
 		try
 		{
+			$this->getDb()->setQuery(
+				$this->getDb()->getQuery(true)
+					->insert('#__patchtester_pulls')
+					->columns(['pull_id', 'title', 'description', 'pull_url', 'is_rtc', 'is_npm', 'branch'])
+					->values($data)
+			);
+
 			$this->getDb()->execute();
 		}
 		catch (\RuntimeException $exception)
@@ -482,30 +482,31 @@ class PullsModel extends AbstractModel
 			);
 		}
 
-		$this->getDb()->setQuery(
-			$this->getDb()->getQuery(true)
-				->insert('#__patchtester_pulls_labels')
-				->columns(['pull_id', 'name', 'color'])
-				->values($labels)
-		);
-
-		try
+		if ($labels)
 		{
-			$this->getDb()->execute();
-		}
-		catch (\RuntimeException $exception)
-		{
-			throw new \RuntimeException(
-				Text::sprintf(
-					'COM_PATCHTESTER_ERROR_INSERT_DATABASE',
-					$exception->getMessage()
-				),
-				$exception->getCode(),
-				$exception
-			);
+			try
+			{
+				$this->getDb()->setQuery(
+					$this->getDb()->getQuery(true)
+						->insert('#__patchtester_pulls_labels')
+						->columns(['pull_id', 'name', 'color'])
+						->values($labels)
+				);
+				$this->getDb()->execute();
+			}
+			catch (\RuntimeException $exception)
+			{
+				throw new \RuntimeException(
+					Text::sprintf(
+						'COM_PATCHTESTER_ERROR_INSERT_DATABASE',
+						$exception->getMessage()
+					),
+					$exception->getCode(),
+					$exception
+				);
+			}
 		}
 
-		// Need to make another request
 		return [
 			'complete' => false,
 			'page'     => ($page + 1),
