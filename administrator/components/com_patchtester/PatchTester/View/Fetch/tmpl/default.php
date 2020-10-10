@@ -14,7 +14,8 @@ use Joomla\CMS\Language\Text;
 
 HTMLHelper::_('jquery.framework');
 HTMLHelper::_('behavior.core');
-HTMLHelper::_('script', 'com_patchtester/fetcher.js', array('version' => 'auto', 'relative' => true));
+HTMLHelper::_('script', 'com_patchtester/fetcher.js', ['version' => 'auto', 'relative' => true]);
+Text::script('COM_PATCHTESTER_FETCH_AN_ERROR_HAS_OCCURRED');
 
 ?>
 
