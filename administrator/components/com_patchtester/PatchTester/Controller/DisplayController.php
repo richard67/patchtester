@@ -110,7 +110,7 @@ class DisplayController extends AbstractController
 		$state->set('filter.npm', $app->getUserStateFromRequest($this->context . '.filter.npm', 'filter_npm', ''));
 
 		// Pre-fill the limits.
-		$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit', 20), 'uint');
+		$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->input->get('list_limit', 20), 'uint');
 		$state->set('list.limit', $limit);
 
 		$fullOrdering = $app->getUserStateFromRequest($this->context . '.fullorder', 'list_fullordering', $this->defaultFullOrdering);
