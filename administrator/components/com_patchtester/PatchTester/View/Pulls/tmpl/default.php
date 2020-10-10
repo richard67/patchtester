@@ -35,11 +35,12 @@ $listOrder     = $this->escape($this->state->get('list.fullordering', 'a.pull_id
 $listLimit     = (int) ($this->state->get('list.limit'));
 $filterApplied = $this->escape($this->state->get('filter.applied'));
 $filterBranch  = $this->escape($this->state->get('filter.branch'));
+$filterLabel   = $this->state->get('filter.label');
 $filterRtc     = $this->escape($this->state->get('filter.rtc'));
 $filterNpm     = $this->escape($this->state->get('filter.npm'));
 $visible       = '';
 
-if ($filterApplied || $filterBranch || $filterRtc || $filterNpm)
+if ($filterApplied || $filterBranch || $filterLabel || $filterRtc || $filterNpm)
 {
 	$visible = 'js-stools-container-filters-visible';
 }
@@ -117,6 +118,12 @@ if ($filterApplied || $filterBranch || $filterRtc || $filterNpm)
                                 <option value="no"<?php echo $filterNpm === 'no' ? ' selected="selected"' : ''; ?>><?php echo Text::_('COM_PATCHTESTER_NOT_NPM'); ?></option>
                             </select>
                         </div>
+						<div class="js-stools-field-filter">
+							<select name="filter_label[]" class="custom-select" multiple="" onchange="this.form.submit();" size="5">
+								<option value=""><?php echo Text::_('COM_PATCHTESTER_FILTER_LABEL'); ?></option>
+								<?php echo HTMLHelper::_('select.options', $this->labels, 'text', 'text', $filterLabel, false); ?>
+							</select>
+						</div>
 						<div class="js-stools-field-filter">
 							<select name="filter_branch" class="custom-select" onchange="this.form.submit();">
 								<option value=""><?php echo Text::_('COM_PATCHTESTER_FILTER_BRANCH'); ?></option>

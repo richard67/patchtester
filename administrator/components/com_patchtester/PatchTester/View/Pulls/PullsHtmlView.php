@@ -35,6 +35,14 @@ class PullsHtmlView extends DefaultHtmlView
 	protected $branches = [];
 
 	/**
+	 * Array containing the list of labels
+	 *
+	 * @var    array
+	 * @since  4.0.0
+	 */
+	protected $labels = [];
+
+	/**
 	 * Array containing environment errors
 	 *
 	 * @var    array
@@ -101,6 +109,7 @@ class PullsHtmlView extends DefaultHtmlView
 			$this->pagination   = $this->model->getPagination();
 			$this->trackerAlias = TrackerHelper::getTrackerAlias($this->state->get('github_user'), $this->state->get('github_repo'));
 			$this->branches     = $this->model->getBranches();
+			$this->labels       = $this->model->getLabels();
 		}
 
 		// Change the layout if there are environment errors

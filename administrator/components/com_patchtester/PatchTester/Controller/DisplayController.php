@@ -108,6 +108,7 @@ class DisplayController extends AbstractController
 		$state->set('filter.branch', $app->getUserStateFromRequest($this->context . '.filter.branch', 'filter_branch', ''));
 		$state->set('filter.rtc', $app->getUserStateFromRequest($this->context . '.filter.rtc', 'filter_rtc', ''));
 		$state->set('filter.npm', $app->getUserStateFromRequest($this->context . '.filter.npm', 'filter_npm', ''));
+		$state->set('filter.label', $app->getUserStateFromRequest($this->context . '.filter.label', 'filter_label', ''));
 
 		// Pre-fill the limits.
 		$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->input->get('list_limit', 20), 'uint');
