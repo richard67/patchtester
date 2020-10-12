@@ -236,7 +236,6 @@ class PullsModel extends AbstractModel
 				. $db->quoteName('pulls.pull_id')
 			);
 
-
 		// Filter by search
 		$search = $this->getState()->get('filter.search');
 
@@ -332,7 +331,7 @@ class PullsModel extends AbstractModel
 				->group($db->quoteName('pulls_labels.pull_id'));
 
 			$query->leftJoin(
-				'(' . $labelQuery->__toString() . ')' . ' AS ' . $db->quoteName(
+				'(' . $labelQuery->__toString() . ') AS ' . $db->quoteName(
 					'pulls_labels'
 				)
 				. ' ON ' . $db->quoteName('pulls_labels.pull_id') . ' = '
