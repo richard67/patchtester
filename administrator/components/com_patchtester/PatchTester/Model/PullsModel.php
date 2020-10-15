@@ -273,7 +273,7 @@ class PullsModel extends AbstractModel
 			// Not applied patches have a NULL value, so build our value part of the query based on this
 			$value = $applied === 'no' ? ' IS NULL' : ' = 1';
 
-			$query->where($db->quoteName('pulls.applied') . $value);
+			$query->where($db->quoteName('applied') . $value);
 		}
 
 		// Filter for branch
