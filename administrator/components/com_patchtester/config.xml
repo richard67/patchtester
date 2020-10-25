@@ -79,6 +79,7 @@
 				type="password"
 				label="COM_PATCHTESTER_FIELD_GH_PASSWORD_LABEL"
 				description="COM_PATCHTESTER_FIELD_GH_PASSWORD_DESC"
+				hiddenDescription="true"
 				autocomplete="off"
 				default=""
 				showon="gh_auth:credentials"
