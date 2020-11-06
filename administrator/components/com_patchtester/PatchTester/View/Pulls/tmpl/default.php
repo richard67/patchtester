@@ -86,7 +86,7 @@ if ($filterApplied || $filterBranch || $filterLabel || $filterRtc || $filterNpm)
 								</div>
 								<div class="js-stools-field-list">
 									<span class="sr-only">
-										<label id="list_limit-lbl" for="list_limit">Select number of items per page.</label>
+										<label id="list_limit-lbl" for="list_limit"><?php echo Text::_('JGLOBAL_LIST_LIMIT'); ?></label>
 									</span>
 									<select name="list_limit" id="list_limit" class="custom-select" onchange="this.form.submit()">
 										<?php echo HTMLHelper::_('select.options', $this->getLimitOptions(), 'value', 'text', $listLimit); ?>
